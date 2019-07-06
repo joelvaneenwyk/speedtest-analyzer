@@ -1,13 +1,13 @@
 {
   "name": "docker-speedtest-analyser",
-  "version": "v1.3",
+  "version": "1.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/roest01/docker-speedtest-analyser.git"
   },
   "license": "MIT",
   "dependencies": {
-    "bootstrap": "twbs/bootstrap#v4.0.0-beta",
+    "bootstrap": "twbs/bootstrap#v4.3.1",
     "bootstrap-daterangepicker": "dangrossman/bootstrap-daterangepicker#^2.1.25",
     "chart.js": "nnnick/Chart.js#^2.7.0",
     "jquery": "jquery/jquery-dist#1.9.1 - 3",

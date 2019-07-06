@@ -47,6 +47,8 @@ jQuery(document).ready(function(){
         type: "line",
         data: data,
         options: {
+            responsive:true,
+            maintainAspectRatio: false,
             tooltips: {
                 mode: 'index',
                 intersect: false,
