@@ -1,6 +1,8 @@
 <html>
+
 <head>
     <title>Speed Test Stats</title>
+
     <!-- css -->
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="node_modules/bootstrap-daterangepicker/daterangepicker.css">
@@ -16,33 +18,48 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
-
     <!-- custom -->
     <script type="text/javascript" src="js/appConfig.example.js"></script>
     <script type="text/javascript" src="data/appConfig.js"></script>
     <script type="text/javascript" src="js/evaluation.js"></script>
 
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
+
 <body>
-
-<div class="card" style="border-bottom: 0;">
-    <div class="card-header">
-        <span id="title">Statistics</span> <button id="startSpeedtest" data-original-text="start manual speedtest" data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> running ..." class="btn btn-outline-info float-right btn-sm">start manual speedtest</button>
-    </div>
-    <div class="card-body">
-        <h4 class="card-title">
-            <label for="daterange">Time Filter</label>
-        </h4>
-        <div class="form-group">
-            <input id="daterange" type="text" class="form-control" name="daterange" />
+    <div class="container-fluid h-100">
+        <div class="container-fluid h-100">
+            <div class="row justify-content-center h-100">
+                <div class="col-12 bg-red">
+                    <div class="h-100 d-flex flex-column">
+                        <div class="row justify-content-center bg-purple flex-grow-1">
+                                <div class="col-12 bg-red">
+                            <div class="card m-0">
+                                <div class="card-header p-2">
+                                    <span id="title">Statistics</span>
+                                    <button id="startSpeedtest" data-original-text="start manual speedtest"
+                                        data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> running ..."
+                                        class="btn btn-outline-info float-right btn-sm">start manual speedtest</button>
+                                </div>
+                                <div class="card-body p-2">
+                                    <h4 class="card-title m-0">
+                                        <label for="daterange">Time Filter</label>
+                                    </h4>
+                                    <div class="form-group m-0">
+                                        <input id="daterange" type="text" class="form-control" name="daterange" />
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center bg-blue flex-grow-1">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <canvas id="speedChart"></canvas>
     </div>
-    <div class="small text-right">
-        v1.3
-    </div>
-</div>
 </body>
+
 </html>

@@ -3,7 +3,7 @@
  */
 let appConfig = {
   "customTitle": "Statistics",
-  "dateFormat": "DD.MM.YYYY",
+  "dateFormat": "YYYY.MM.DD",
   "locale": "de",
   "labels": {
     "download": "Download",
@@ -13,7 +13,7 @@ let appConfig = {
   "daterange": {
     "timePicker": true,
     "timePicker24Hour": true,
-    "startDate": moment().startOf('day'),
+    "startDate": moment().subtract(1, 'month'),
     "endDate": moment().endOf('day'),
     ranges: {
       'Today': [moment().hours(0).minutes(0).seconds(0), moment().hours(23).minutes(59).seconds(59)],
