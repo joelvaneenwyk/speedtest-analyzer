@@ -1,0 +1,14 @@
+
+#
+# EditorConfig is awesome: https://EditorConfig.org
+#
+
+# IMPORTANT: This is top-most EditorConfig file
+root = true
+
+# 4 space indentation
+[*.py]
+charset = utf-8
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true

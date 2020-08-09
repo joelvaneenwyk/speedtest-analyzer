@@ -1,9 +1,9 @@
 FROM alpine:3.9
 
-# greet me :)
-MAINTAINER Tobias Rös - <roes@amicaldo.de>
+LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
+LABEL author="Tobias Rös - <roes@amicaldo.de>"
 
-# install dependencies
+# Install dependencies
 RUN apk update && apk add \
   bash \
   git \
@@ -14,29 +14,28 @@ RUN apk update && apk add \
   python3 \
   py-pip
 
-
 RUN pip install speedtest-cli
 
-# remove default content
+# Remove default content
 RUN rm -R /var/www/*
 
-# create directory structure
+# Create directory structure
 RUN mkdir -p /etc/nginx
 RUN mkdir -p /run/nginx
 RUN mkdir -p /etc/nginx/global
 RUN mkdir -p /var/www/html
 
-# touch required files
+# Touch required files
 RUN touch /var/log/nginx/access.log && touch /var/log/nginx/error.log
 
-# install vhost config
+# Install vhost config
 ADD ./config/vhost.conf /etc/nginx/conf.d/default.conf
 ADD config/nginxEnv.conf /etc/nginx/modules/nginxEnv.conf
 
-# install webroot files
+# Install webroot files
 ADD ./ /var/www/html/
 
-# install bower dependencies
+# Install dependencies
 RUN npm install -g yarn && cd /var/www/html/ && yarn install
 
 EXPOSE 80
