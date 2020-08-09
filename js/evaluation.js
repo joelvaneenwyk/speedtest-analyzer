@@ -1,6 +1,7 @@
 /**
  * all the custom
  * @author github/roest01
+ * @author github/joelvaneenwyk
  */
 jQuery(document).ready(function(){
     let colors = {
