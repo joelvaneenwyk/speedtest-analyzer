@@ -1,6 +1,7 @@
 version: '3'
 services:
   speedtest:
+    build: .
     container_name: speedtest
     image: joelvaneenwyk/docker-speedtest-analyser
     restart: unless-stopped

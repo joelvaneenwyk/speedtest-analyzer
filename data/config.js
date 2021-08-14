@@ -1,10 +1,4 @@
-/**
- * To customize your settings:
- * 1. copy appConfig.example.js into /data/appConfig.js
- * 2. change "let appConfig = {" to "appConfig = {" in /data/appConfig.js
- * 3. restart the container if it is already running
- */
-let appConfig = {
+appConfig = {
   "customTitle": "Statistics",
   "dateFormat": "YYYY.MM.DD",
   "locale": "de",

@@ -1,7 +1,16 @@
 {
+    "liveServer.settings.port": 5658,
     "cSpell.words": [
         "aleksey",
-        "p"
-    ],
-    "liveServer.settings.port": 5658
+        "bootstrap",
+        "daterange",
+        "daterangepicker",
+        "os",
+        "p",
+        "papaparse",
+        "popen",
+        "popperjs",
+        "roest",
+        "speedtest"
+    ]
 }

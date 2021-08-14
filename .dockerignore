@@ -1,0 +1,16 @@
+#
+# Ignore everything we can build locally.
+#
+
+.vscode/
+
+.yarn/*
+!.yarn/releases
+
+.jshintrc
+*.png
+*.pyc
+Dockerfile
+docker-compose.yaml
+
+node_modules/

@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Script originally provided by AlekseyP:
 
@@ -15,59 +14,59 @@ import os
 import csv
 import datetime
 import time
+from speedtest import Speedtest
+
+# static values
+CSV_FIELDNAMES = ["timestamp", "ping", "download", "upload"]
+FILEPATH = os.path.dirname(os.path.abspath(__file__)) + '/../data/result.csv'
+
 
 def runSpeedtest():
-    """
-    run speedtest-cli
-    """
-
+    # run speedtest-cli
     print('--- running speedtest ---')
-    speedtestCommand= "speedtest-cli --simple"
-    if "SPEEDTEST_PARAMS" in os.environ:
-        extraParams_= os.environ.get('SPEEDTEST_PARAMS')
-        speedtestCommand= speedtestCommand + " " + extraParams_
-        print('speedtest with extra parameter: ' + speedtestCommand)
-    else:
-        print('running with default server')
 
-    a = os.popen(speedtestCommand).read()
-    print('ran')
+    # execute speedtest
+    servers = []
+    threads = None
 
-    # split the 3 line result (ping,down,up)
-    lines = a.split('\n')
-    print(a)
-    ts = time.time()
-    date =datetime.datetime.fromtimestamp(ts).strftime('%d.%m.%Y %H:%M:%S')
-    print(date)
+    s = Speedtest()
+    s.get_servers(servers)
+    s.get_best_server()
+    s.download(threads=threads)
+    s.upload(threads=threads, pre_allocate=False)
+    result = s.results.dict()
 
-    # if speedtest could not connect set the speeds to 0
-    if "Cannot" in a:
-            p = 100
-            d = 0
-            u = 0
-    # extract the values for ping down and up values
-    else:
-            p = lines[0][6:11]
-            d = lines[1][10:14]
-            u = lines[2][8:12]
+    # collect speedtest data
+    ping = round(result['ping'], 2)
+    download = round(result['download'] / 1000 / 1000, 2)
+    upload = round(result['upload'] / 1000 / 1000, 2)
+    timestamp = round(time.time() * 1000, 3)
 
-    print(date,p, d, u)
+    csv_data_dict = {
+        CSV_FIELDNAMES[0]: timestamp,
+        CSV_FIELDNAMES[1]: ping,
+        CSV_FIELDNAMES[2]: download,
+        CSV_FIELDNAMES[3]: upload}
 
-    # save the data to file for local network plotting
-    filepath = os.path.dirname(os.path.abspath(__file__))+'/../data/result.csv'
-    fileExist = os.path.isfile(filepath)
+    # write testdata to file
+    isFileEmpty = not os.path.isfile(
+        FILEPATH) or os.stat(FILEPATH).st_size == 0
 
-    out_file = open(filepath, 'a')
-    writer = csv.writer(out_file)
+    with open(FILEPATH, "a") as f:
+        csv_writer = csv.DictWriter(
+            f, delimiter=',', lineterminator='\n', fieldnames=CSV_FIELDNAMES)
+        if isFileEmpty:
+            csv_writer.writeheader()
 
-    if fileExist != True:
-            out_file.write("timestamp,ping,download,upload")
-            out_file.write("\n")
+        csv_writer.writerow(csv_data_dict)
 
-    writer.writerow((ts*1000,p,d,u))
-    out_file.close()
+    # print testdata
+    print('--- Result ---')
+    print("Timestamp: %s" % (timestamp))
+    print("Ping: %d [ms]" % (ping))
+    print("Download: %d [Mbit/s]" % (download))
+    print("Upload: %d [Mbit/s]" % (upload))
 
-    return
 
 if __name__ == '__main__':
     runSpeedtest()
