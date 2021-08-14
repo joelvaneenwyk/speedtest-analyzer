@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
   },
-  "main": "scripts/speedtest.py",
+  "main": "scripts/runSpeedtest.py",
   "license": "MIT",
   "dependencies": {
     "@popperjs/core": "^2.9.3",
@@ -25,7 +25,7 @@
   "packageManager": "yarn@3.0.1-rc.2",
   "scripts": {
     "docker": "docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans --renew-anon-volumes",
-    "test": "pip install speedtest-cli && python scripts/speedtest.py"
+    "test": "pip install speedtest-cli && python scripts/runSpeedtest.py"
   },
   "dependenciesMeta": {
     "bootstrap@5.1.0": {

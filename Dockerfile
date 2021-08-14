@@ -7,7 +7,6 @@ ARG NginxWebRoot=/usr/share/nginx/html
 
 ENV NGINX_WEB_ROOT=${NginxWebRoot}
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
-ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
 
 # Install dependencies
 RUN apk update && apk add \
@@ -16,9 +15,9 @@ RUN apk update && apk add \
   nodejs \
   npm \
   python3 \
-  py-pip
+  py3-pip
 
-RUN pip install speedtest-cli
+RUN pip3 install speedtest-cli
 
 RUN npm install -g yarn
 
@@ -44,16 +43,14 @@ RUN yarn install
 # Install default configuration. We use a template here which handles variable substitution for
 # us, see https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration
 RUN \
-rm -rf $NGINX_ENVSUBST_OUTPUT_DIR/ \
-&& mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
-&& mkdir -p $NGINX_ENVSUBST_OUTPUT_DIR/ \
+mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
 && cp -a "${NginxWebRoot}/templates/." "$NGINX_ENVSUBST_TEMPLATE_DIR/" \
 && cp -f "${NginxWebRoot}/config/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
 
 # Update permissions so that nginx server can touch/modify files as needed
 RUN chown -R nginx:nginx ${NginxWebRoot}/
 RUN chmod a+x ${NginxWebRoot}/config/run.sh
-RUN chmod a+x ${NginxWebRoot}/scripts/speedtest.py
+RUN chmod a+x ${NginxWebRoot}/scripts/runSpeedtest.py
 
 EXPOSE 80
 EXPOSE 443

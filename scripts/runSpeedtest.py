@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Script originally provided by AlekseyP:
 
@@ -22,19 +22,20 @@ FILEPATH = os.path.dirname(os.path.abspath(__file__)) + '/../data/result.csv'
 
 
 def runSpeedtest():
-    # run speedtest-cli
-    print('--- running speedtest ---')
+    # Run speedtest-cli
+    print('--- Running speedtest using command line interface ---')
 
-    # execute speedtest
     servers = []
     threads = None
 
-    s = Speedtest()
-    s.get_servers(servers)
-    s.get_best_server()
-    s.download(threads=threads)
-    s.upload(threads=threads, pre_allocate=False)
-    result = s.results.dict()
+    # Execute speedtest
+    test = Speedtest()
+    test.get_servers(servers)
+    test.get_best_server()
+    test.download(threads=threads)
+    test.upload(threads=threads, pre_allocate=False)
+
+    result = test.results.dict()
 
     # collect speedtest data
     ping = round(result['ping'], 2)
@@ -48,7 +49,7 @@ def runSpeedtest():
         CSV_FIELDNAMES[2]: download,
         CSV_FIELDNAMES[3]: upload}
 
-    # write testdata to file
+    # Write testdata to file
     isFileEmpty = not os.path.isfile(
         FILEPATH) or os.stat(FILEPATH).st_size == 0
 

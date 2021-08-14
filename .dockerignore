@@ -8,8 +8,8 @@
 !.yarn/releases
 
 .jshintrc
-*.png
-*.pyc
+**/*.png
+**/*.pyc
 Dockerfile
 docker-compose.yaml
 

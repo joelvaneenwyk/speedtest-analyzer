@@ -5,12 +5,15 @@
         "bootstrap",
         "daterange",
         "daterangepicker",
+        "joelvaneenwyk",
         "os",
         "p",
         "papaparse",
+        "peaceiris",
         "popen",
         "popperjs",
         "roest",
-        "speedtest"
+        "speedtest",
+        "submodules"
     ]
 }
