@@ -1,10 +1,15 @@
 {
     "liveServer.settings.port": 5658,
     "cSpell.words": [
+        "action",
         "aleksey",
         "bootstrap",
+        "buildx",
         "daterange",
         "daterangepicker",
+        "dockerhu",
+        "dockerhub",
+        "github",
         "joelvaneenwyk",
         "os",
         "p",
@@ -12,7 +17,11 @@
         "peaceiris",
         "popen",
         "popperjs",
+        "qemu",
+        "rlespinasse",
         "roest",
+        "semver",
+        "slug",
         "speedtest",
         "submodules"
     ]
