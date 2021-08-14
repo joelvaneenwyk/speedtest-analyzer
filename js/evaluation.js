@@ -89,7 +89,7 @@ jQuery(document).ready(function(){
             let parseManager = this;
             parseManager.i = 0;
 
-            Papa.parse("/data/result.csv", {
+            Papa.parse("data/result.csv", {
                 download: true,
                 step: function(row) { //using stream to allow huge file progressing
                     parseManager.i++;
