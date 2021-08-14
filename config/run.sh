@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
-echo "Starting run.sh"
 
-cat /var/www/html/config/crontab.default > /var/www/html/config/crontab
+echo "[run.sh] Initializing system."
 
-if [[ ${CRONJOB_ITERATION} && ${CRONJOB_ITERATION-x} ]]; then
-    sed -i -e "s/0/*\/${CRONJOB_ITERATION}/g" /var/www/html/config/crontab
+_script="${BASH_SOURCE[0]}"
+_script_path="$(realpath "$_script")"
+_script_home="$(cd "$(dirname "$_script_path")" &>/dev/null && cd ../ && pwd)"
+echo "Speedtest root: '$_script_home'"
+echo "NGINX web root: '$NGINX_WEB_ROOT'"
+
+if [ ! -f "$_script_home/data/config.js" ] && [ -f "$_script_home/js/config-default.js" ]; then
+    cp -f "$_script_home/js/config-default.js" "$_script_home/data/config.js"
 fi
-crontab /var/www/html/config/crontab
 
-echo "Starting Cronjob"
+_crontab="$_script_home/config/crontab"
+echo "${CRONJOB_ITERATION:-15} * * * * $_script_home/scripts/speedtest.py>/dev/stdout 2>&1">"$_crontab"
+crontab "$_crontab"
+
+echo "Starting Cronjob..."
 crond -l 2 -f &
 
-echo "Starting nginx"
-exec nginx -g "daemon off;"
+echo "Starting nginx..."
 
-exit 0;
+/docker-entrypoint.sh nginx -g "daemon off;"
+
+echo "Speedtest has started and server is running."
+exit 0

@@ -1,47 +1,58 @@
-FROM alpine:3.9
+FROM fabiocicerchia/nginx-lua:1.21.1-alpine
 
-LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
 LABEL author="Tobias Rös - <roes@amicaldo.de>"
+LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
+
+ARG NginxWebRoot=/usr/share/nginx/html
+
+ENV NGINX_WEB_ROOT=${NginxWebRoot}
+ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 
 # Install dependencies
 RUN apk update && apk add \
   bash \
   git \
   nodejs \
-  nodejs-npm \
-  nginx \
-  nginx-mod-http-lua \
+  npm \
   python3 \
-  py-pip
+  py3-pip
 
-RUN pip install speedtest-cli
+RUN pip3 install speedtest-cli
 
-# Remove default content
-RUN rm -R /var/www/*
+RUN npm install -g yarn
 
-# Create directory structure
-RUN mkdir -p /etc/nginx
-RUN mkdir -p /run/nginx
-RUN mkdir -p /etc/nginx/global
-RUN mkdir -p /var/www/html
+# Create directory structure and required files if they do not exist
+RUN \
+mkdir -p /run/nginx/ \
+&& mkdir -p /etc/nginx/global/ \
+&& mkdir -p ${NginxWebRoot}/ \
+&& mkdir -p ${NginxWebRoot}/logs/ \
+&& mkdir -p /etc/nginx/modules/ \
+&& touch /var/log/nginx/access.log \
+&& touch /var/log/nginx/error.log
 
-# Touch required files
-RUN touch /var/log/nginx/access.log && touch /var/log/nginx/error.log
+# Default web content goes here in newer versions of nginx
+WORKDIR ${NginxWebRoot}
 
-# Install vhost config
-ADD ./config/vhost.conf /etc/nginx/conf.d/default.conf
-ADD config/nginxEnv.conf /etc/nginx/modules/nginxEnv.conf
-
-# Install webroot files
-ADD ./ /var/www/html/
+# Copy over all files
+COPY ./ ./
 
 # Install dependencies
-RUN npm install -g yarn && cd /var/www/html/ && yarn install
+RUN yarn install
+
+# Install default configuration. We use a template here which handles variable substitution for
+# us, see https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration
+RUN \
+mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
+&& cp -a "${NginxWebRoot}/templates/." "$NGINX_ENVSUBST_TEMPLATE_DIR/" \
+&& cp -f "${NginxWebRoot}/config/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
+
+# Update permissions so that nginx server can touch/modify files as needed
+RUN chown -R nginx:nginx ${NginxWebRoot}/
+RUN chmod a+x ${NginxWebRoot}/config/run.sh
+RUN chmod a+x ${NginxWebRoot}/scripts/runSpeedtest.py
 
 EXPOSE 80
 EXPOSE 443
 
-RUN chown -R nginx:nginx /var/www/html/
-RUN chmod +x /var/www/html/config/run.sh
-
-ENTRYPOINT ["/var/www/html/config/run.sh"]
+ENTRYPOINT ["sh", "-c", "$NGINX_WEB_ROOT/config/run.sh"]

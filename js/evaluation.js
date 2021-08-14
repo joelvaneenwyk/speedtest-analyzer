@@ -9,9 +9,11 @@ jQuery(document).ready(function(){
         black: "rgba(90,90,90,1)",
         green: "rgba(143,181,178,0.8)"
     };
+
     if (appConfig.customTitle){
         jQuery('#title').html(appConfig.customTitle);
     }
+
     let data = {
         labels:[] ,
         datasets: [
@@ -42,7 +44,6 @@ jQuery(document).ready(function(){
         ]
     };
 
-
     let chartDom = jQuery("#speedChart").get(0).getContext("2d");
     let chartJS = new Chart(chartDom, {
         type: "line",
@@ -70,7 +71,6 @@ jQuery(document).ready(function(){
             multiTooltipTemplate: "<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= value %> <%if (datasetLabel != appConfig.labels.ping){%>MBits/s<%}%>"
         }
     });
-
 
     let ParseManager = function(){
         let parseManager = this;
