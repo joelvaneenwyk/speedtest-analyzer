@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.14.1
 
 LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
 LABEL author="Tobias Rös - <roes@amicaldo.de>"
@@ -29,14 +29,16 @@ RUN mkdir -p /var/www/html
 RUN touch /var/log/nginx/access.log && touch /var/log/nginx/error.log
 
 # Install vhost config
-ADD ./config/vhost.conf /etc/nginx/conf.d/default.conf
-ADD config/nginxEnv.conf /etc/nginx/modules/nginxEnv.conf
+COPY ./config/vhost.conf /etc/nginx/conf.d/default.conf
+COPY ./config/nginxEnv.conf /etc/nginx/modules/nginxEnv.conf
 
 # Install webroot files
-ADD ./ /var/www/html/
+COPY ./ /var/www/html/
 
 # Install dependencies
-RUN npm install -g yarn && cd /var/www/html/ && yarn install
+RUN npm install -g yarn \
+&& cd /var/www/html/ \
+&& yarn install
 
 EXPOSE 80
 EXPOSE 443

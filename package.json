@@ -5,17 +5,45 @@
     "type": "git",
     "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
   },
+  "main": "scripts/speedtest.py",
   "license": "MIT",
   "dependencies": {
-    "bootstrap": "twbs/bootstrap#v4.3.1",
-    "bootstrap-daterangepicker": "dangrossman/bootstrap-daterangepicker#^2.1.25",
-    "chart.js": "nnnick/Chart.js#^2.7.0",
-    "jquery": "jquery/jquery-dist#1.9.1 - 3",
-    "moment": "moment/moment#^2.19.3",
-    "papaparse": "mholt/PapaParse#^5.2.0",
-    "popper.js": "^1.14.7"
+    "@popperjs/core": "^2.9.3",
+    "bootstrap": "^5.1.0",
+    "bootstrap-daterangepicker": "^3.1.0",
+    "chart.js": "^3.5.0",
+    "jquery": "^3.6.0",
+    "moment": "^2.29.1",
+    "papaparse": "^5.3.1",
+    "popper.js": "^1.16.1"
   },
   "engines": {
-    "yarn": ">= 1.0.0"
+    "node": "^14.0.0",
+    "npm": "^7.0.0",
+    "yarn": "^1.0.0"
+  },
+  "packageManager": "yarn@3.0.1-rc.2",
+  "dependenciesMeta": {
+    "bootstrap@5.1.0": {
+      "unplugged": true
+    },
+    "bootstrap-daterangepicker@3.1.0": {
+      "unplugged": true
+    },
+    "chart.js@3.5.0": {
+      "unplugged": true
+    },
+    "jquery@3.6.0": {
+      "unplugged": true
+    },
+    "moment@2.29.1": {
+      "unplugged": true
+    },
+    "papaparse@5.3.1": {
+      "unplugged": true
+    },
+    "popper.js@1.16.1": {
+      "unplugged": true
+    }
   }
 }

@@ -7,8 +7,8 @@ Script originally provided by AlekseyP:
 
 Contributors:
 
-    - modifications by roest - https://github.com/roest01
-    - additional modifications by joelvaneenwyk - http://github.com/joelvaneenwyk
+    - Modifications by roest - https://github.com/roest01
+    - Additional modifications by Joel Van Eenwyk - http://github.com/joelvaneenwyk
 """
 
 import os
