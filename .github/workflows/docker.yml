@@ -32,7 +32,7 @@ jobs:
       - name: Inject GitHub slug variables
         uses: rlespinasse/github-slug-action@v3.x
 
-        name: Docker meta
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
