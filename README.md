@@ -1,9 +1,9 @@
 # Docker Speedtest Analyser
 
-Automated docker speedtest analyser tool with included web interface to monitor your internet speed connection over time. Setup at home on your NAS (Synology, QNAP tested) and the container runs hourly speedtests. The speedtest results are displayed in an webinterface as line graph(s) over the day.
+Automated docker speedtest analyser tool with included web interface to monitor your internet speed connection over time. Setup at home on your NAS (Synology, QNAP tested) and the container runs hourly speedtests. The speedtest results are displayed in an web interface as line graph(s) over the day.
 
-This tool was created in reference to [this reddit post](https://www.reddit.com/r/technology/comments/43fi39/i_set_up_my_raspberry_pi_to_automatically_tweet/).  
-It used [speedtest-cli](https://github.com/sivel/speedtest-cli) to make speedtests and log them into a CSV file.  
+This tool was created in reference to [this reddit post](https://www.reddit.com/r/technology/comments/43fi39/i_set_up_my_raspberry_pi_to_automatically_tweet/).
+It used [speedtest-cli](https://github.com/sivel/speedtest-cli) to make speedtests and log them into a CSV file.
 After that you can visit the web interface to view a hourly - time filterable reports about
 your internet connectivity speed.
 
@@ -19,7 +19,7 @@ You can get the publicly available docker image at the following location: [joel
 
 1. The speedtest runs hourly by default
 2. nginx is prepared but not configured for SSL yet
-3. data is saved in a _.csv_ under ```/var/www/html/data/result.csv```
+3. Data is saved in a _.csv_ under `/var/www/html/data/result.csv`
 4. First speedtest will be executed in container build
 
 ## Installation
@@ -27,31 +27,32 @@ You can get the publicly available docker image at the following location: [joel
 The SpeedTest analyser should to run out of the box with docker.
 
 **Important:** To keep the history of speedtest within a rebuild of
-the container please moint a volume in ``/var/www/html/data/``
+the container please mount a volume in ``/var/www/html/data/``
 
 ### Setup
 
-1. Moint host volume onto ``/var/www/html/data/``
+1. Mount host volume onto `/var/www/html/data/`
 2. Map preferred host port on port _80_
 3. Build container from image
-4. Enjoy continious speed statistics after a while
+4. Enjoy continuous speed statistics after a while
 
 ## Environment Variables
 
 | Variable  | Type | Usage |  Example Value | Default |
 | ------------- | ------------- | ------------- | ------------- | ------------- |
 | CRONJOB_ITERATION  | INT  | Time between speedtests in minutes. Value 15 means the cronjob runs every 15 minutes. Keep undefined to run hourly. | 15 | 60 |
-| SPEEDTEST_PARAMS  | STRING  | append extra parameter for cli command.<br/> `speedtest-cli --simple $SPEEDTEST_PARAMS` <br/> Check [parameter documentation](https://github.com/sivel/speedtest-cli#usage)  | --mini https://speedtest.test.fr | none |
+| SPEEDTEST_PARAMS  | STRING  | Append extra parameter for cli command (i.e., `speedtest-cli --simple $SPEEDTEST_PARAMS`). See [parameter documentation](https://github.com/sivel/speedtest-cli#usage) for available options.  | `--mini https://speedtest.test.fr` | none |
 
-## Configiguration
+## Configuration
 
-You can configure the visualization frontend via ``appConfig.js``
-copy the ``/js/appConfig.example.js`` into ``/data/appConfig.js`` (where your volume should be mounted)
-Change ``let appConfig = {`` to ``appConfig = {`` in /data/appConfig.js
+You can configure the visualization frontend using JavaScript.
+
+1. Copy `/js/config.template.js` into `/data/config.js` where your volume should be mounted. Note that this is done automatically if you run the Docker first.
+2. Update the values in `/data/config.js` and restart your Docker instance.
 
 ### Dependencies
 
-1. Bootstrap 4 - alpha
+1. Bootstrap 4
 2. Chart.js
 3. daterangepicker.js
 4. moment.js

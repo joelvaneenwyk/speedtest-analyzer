@@ -9,11 +9,11 @@ echo "Speedtest root: '$_script_home'"
 echo "NGINX web root: '$NGINX_WEB_ROOT'"
 
 if [ ! -f "$_script_home/data/config.js" ] && [ -f "$_script_home/js/config-default.js" ]; then
-    cp -f "$_script_home/js/config-default.js" "$_script_home/data/config.js"
+    cp -f "$_script_home/js/config.template.js" "$_script_home/data/config.js"
 fi
 
 _crontab="$_script_home/config/crontab"
-echo "${CRONJOB_ITERATION:-15} * * * * $_script_home/scripts/speedtest.py>/dev/stdout 2>&1">"$_crontab"
+echo "${CRONJOB_ITERATION:-15} * * * * $_script_home/scripts/runSpeedtest.py>/dev/stdout 2>&1">"$_crontab"
 crontab "$_crontab"
 
 echo "Starting Cronjob..."

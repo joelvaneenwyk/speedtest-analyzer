@@ -1,5 +1,45 @@
 {
-    "liveServer.settings.port": 5658,
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "json.format.enable": false,
+
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+
+    "eslint.nodePath": ".yarn/sdks",
+    "prettier.eslintIntegration": true,
+    "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+
+    "files.associations": {
+        "tsconfig.json": "jsonc",
+        ".eslintrc.json": "jsonc",
+        "*.json.git": "jsonc"
+    },
+
+    "search.exclude": {
+        "**/.yarn": true,
+        "**/.pnp.*": true
+    },
+
+    "liveServer.settings.port": 13100,
+
+    "cSpell.ignorePaths": [
+        "**/package-lock.json",
+        "**/node_modules/**",
+        "**/vscode-extension/**",
+        "**/.git/objects/**",
+        ".vscode",
+        ".vscode-insiders",
+        ".eslintrc.json"
+    ],
     "cSpell.words": [
         "action",
         "aleksey",
@@ -11,18 +51,24 @@
         "dockerhub",
         "github",
         "joelvaneenwyk",
+        "mbit",
         "os",
         "p",
         "papaparse",
         "peaceiris",
+        "pnpify",
         "popen",
         "popperjs",
         "qemu",
+        "qnap",
         "rlespinasse",
         "roest",
+        "sdks",
         "semver",
         "slug",
         "speedtest",
-        "submodules"
+        "speedtests",
+        "submodules",
+        "yarnpkg"
     ]
 }

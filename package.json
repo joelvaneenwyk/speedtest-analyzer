@@ -1,53 +1,64 @@
 {
-  "name": "docker-speedtest-analyser",
-  "version": "1.4.1",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
-  },
-  "main": "scripts/runSpeedtest.py",
-  "license": "MIT",
-  "dependencies": {
-    "@popperjs/core": "^2.9.3",
-    "bootstrap": "^5.1.0",
-    "bootstrap-daterangepicker": "^3.1.0",
-    "chart.js": "^3.5.0",
-    "jquery": "^3.6.0",
-    "moment": "^2.29.1",
-    "papaparse": "^5.3.1",
-    "popper.js": "^1.16.1"
-  },
-  "engines": {
-    "node": "^14.0.0",
-    "npm": "^7.0.0",
-    "yarn": "^1.0.0"
-  },
-  "packageManager": "yarn@3.0.1-rc.2",
-  "scripts": {
-    "docker": "docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans --renew-anon-volumes",
-    "test": "pip install speedtest-cli && python scripts/runSpeedtest.py"
-  },
-  "dependenciesMeta": {
-    "bootstrap@5.1.0": {
-      "unplugged": true
+    "name": "docker-speedtest-analyser",
+    "version": "1.4.2",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
     },
-    "bootstrap-daterangepicker@3.1.0": {
-      "unplugged": true
+    "main": "scripts/runSpeedtest.py",
+    "license": "MIT",
+    "dependencies": {
+        "@popperjs/core": "^2.9.3",
+        "@yarnpkg/pnpify": "^3.0.1",
+        "@yarnpkg/sdks": "^2.4.1-rc.4",
+        "bootstrap": "^5.1.0",
+        "bootstrap-daterangepicker": "^3.1.0",
+        "chart.js": "^3.5.0",
+        "jquery": "^3.6.0",
+        "moment": "^2.29.1",
+        "papaparse": "^5.3.1",
+        "popper.js": "^1.16.1",
+        "prettier": "^2.3.2",
+        "prettier-eslint": "^13.0.0",
+        "prettier-plugin-sh": "^0.7.1"
     },
-    "chart.js@3.5.0": {
-      "unplugged": true
+    "engines": {
+        "node": "^14.0.0",
+        "npm": "^7.0.0",
+        "yarn": "^1.0.0"
     },
-    "jquery@3.6.0": {
-      "unplugged": true
+    "packageManager": "yarn@3.0.1-rc.2",
+    "scripts": {
+        "dev": "yarn sdks",
+        "docker": "docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans --renew-anon-volumes",
+        "test": "pip install speedtest-cli && python scripts/runSpeedtest.py"
     },
-    "moment@2.29.1": {
-      "unplugged": true
+    "dependenciesMeta": {
+        "bootstrap@5.1.0": {
+            "unplugged": true
+        },
+        "bootstrap-daterangepicker@3.1.0": {
+            "unplugged": true
+        },
+        "chart.js@3.5.0": {
+            "unplugged": true
+        },
+        "jquery@3.6.0": {
+            "unplugged": true
+        },
+        "moment@2.29.1": {
+            "unplugged": true
+        },
+        "papaparse@5.3.1": {
+            "unplugged": true
+        },
+        "popper.js@1.16.1": {
+            "unplugged": true
+        }
     },
-    "papaparse@5.3.1": {
-      "unplugged": true
-    },
-    "popper.js@1.16.1": {
-      "unplugged": true
+    "devDependencies": {
+        "eslint": "^7.32.0",
+        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint-plugin-import": "^2.24.0"
     }
-  }
 }
