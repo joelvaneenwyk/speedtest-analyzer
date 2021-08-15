@@ -4,12 +4,9 @@ Automated docker speedtest analyser tool with included web interface to monitor 
 
 This tool was created in reference to [this reddit post](https://www.reddit.com/r/technology/comments/43fi39/i_set_up_my_raspberry_pi_to_automatically_tweet/).
 It used [speedtest-cli](https://github.com/sivel/speedtest-cli) to make speedtests and log them into a CSV file.
-After that you can visit the web interface to view a hourly - time filterable reports about
-your internet connectivity speed.
+After that you can visit the web interface to view a hourly - time filterable reports about your internet connectivity speed.
 
-## Screenshots
-
-![Statistic Screenshot](https://github.com/joelvaneenwyk/docker-speedtest-analyser/raw/master/speedlogger_screenshot.png?raw=true)
+![Statistic Screenshot](images/speedtest_screenshot.png)
 
 ## Docker Hub Image
 

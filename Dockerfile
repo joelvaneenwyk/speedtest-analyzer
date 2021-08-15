@@ -8,6 +8,8 @@ ARG NginxWebRoot=/usr/share/nginx/html
 ENV NGINX_WEB_ROOT=${NginxWebRoot}
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 
+RUN echo "Initiating Docker build of Speedtest analyser."
+
 # Install dependencies
 RUN apk update && apk add \
   bash \

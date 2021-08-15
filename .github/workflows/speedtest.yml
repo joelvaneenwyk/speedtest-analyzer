@@ -3,10 +3,10 @@ name: Validate Speedtest Analyzer
 on:
   push:
     branches:
-      - 'main'
-      - 'develop'
+      - "main"
+      - "develop"
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   docker_build:
@@ -44,8 +44,6 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
 
       - name: Build and push
         id: docker_build
