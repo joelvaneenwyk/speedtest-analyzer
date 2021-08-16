@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "vscode-edge-devtools.debug",
+            "request": "launch",
+            "name": "Launch Microsoft Edge and open the Edge DevTools",
+            "url": "http://localhost:14400",
+            "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "Launch Edge",
+            "request": "launch",
+            "type": "pwa-msedge",
+            "url": "http://localhost:14400",
+            "webRoot": "${workspaceFolder}/build"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

@@ -41,7 +41,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@popperjs/core", "npm:2.9.3"],
             ["@types/babel__core", "npm:7.1.15"],
             ["@types/bootstrap", "npm:5.1.1"],
-            ["@types/bootstrap-datepicker", "npm:0.0.15"],
             ["@types/daterangepicker", "npm:3.1.4"],
             ["@types/enzyme", "npm:3.10.9"],
             ["@types/eslint", "npm:7.28.0"],
@@ -61,10 +60,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@yarnpkg/pnpify", "npm:3.0.1"],
             ["@yarnpkg/sdks", "npm:2.4.1-rc.4"],
             ["bootstrap", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:5.1.0"],
-            ["bootstrap-daterangepicker", "npm:3.1.0"],
             ["chart.js", "npm:3.5.0"],
+            ["chartjs-adapter-moment", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:1.0.0"],
             ["clean-webpack-plugin", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.0.0"],
             ["css-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:6.2.0"],
+            ["daterangepicker", "npm:3.1.0"],
             ["del-cli", "npm:4.0.1"],
             ["enzyme", "npm:3.11.0"],
             ["eslint", "npm:7.32.0"],
@@ -91,6 +91,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prettier", "npm:2.3.2"],
             ["prettier-eslint", "npm:13.0.0"],
             ["prettier-plugin-sh", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:0.7.1"],
+            ["raw-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:4.0.2"],
             ["sass-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:12.1.0"],
             ["source-map-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.0.0"],
             ["style-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.2.1"],
@@ -1578,16 +1579,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@types/bootstrap", "npm:5.1.1"],
             ["@popperjs/core", "npm:2.9.3"],
-            ["@types/jquery", "npm:3.5.6"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["@types/bootstrap-datepicker", [
-        ["npm:0.0.15", {
-          "packageLocation": "./.yarn/cache/@types-bootstrap-datepicker-npm-0.0.15-e48ba2ac18-82d659500d.zip/node_modules/@types/bootstrap-datepicker/",
-          "packageDependencies": [
-            ["@types/bootstrap-datepicker", "npm:0.0.15"],
             ["@types/jquery", "npm:3.5.6"]
           ],
           "linkType": "HARD",
@@ -3553,17 +3544,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
-      ["bootstrap-daterangepicker", [
-        ["npm:3.1.0", {
-          "packageLocation": "./.yarn/cache/bootstrap-daterangepicker-npm-3.1.0-92908280c6-3a45c28d48.zip/node_modules/bootstrap-daterangepicker/",
-          "packageDependencies": [
-            ["bootstrap-daterangepicker", "npm:3.1.0"],
-            ["jquery", "npm:3.6.0"],
-            ["moment", "npm:2.29.1"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
       ["brace-expansion", [
         ["npm:1.1.11", {
           "packageLocation": "./.yarn/cache/brace-expansion-npm-1.1.11-fb95eb05ad-faf34a7bb0.zip/node_modules/brace-expansion/",
@@ -3831,6 +3811,32 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/chart.js-npm-3.5.0-66341440f6-9ce5400b3e.zip/node_modules/chart.js/",
           "packageDependencies": [
             ["chart.js", "npm:3.5.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["chartjs-adapter-moment", [
+        ["npm:1.0.0", {
+          "packageLocation": "./.yarn/cache/chartjs-adapter-moment-npm-1.0.0-78981519cb-d1efe7d9d7.zip/node_modules/chartjs-adapter-moment/",
+          "packageDependencies": [
+            ["chartjs-adapter-moment", "npm:1.0.0"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:1.0.0", {
+          "packageLocation": "./.yarn/__virtual__/chartjs-adapter-moment-virtual-98b8cb3a2d/0/cache/chartjs-adapter-moment-npm-1.0.0-78981519cb-d1efe7d9d7.zip/node_modules/chartjs-adapter-moment/",
+          "packageDependencies": [
+            ["chartjs-adapter-moment", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:1.0.0"],
+            ["@types/chart.js", null],
+            ["@types/moment", null],
+            ["chart.js", "npm:3.5.0"],
+            ["moment", "npm:2.29.1"]
+          ],
+          "packagePeers": [
+            "@types/chart.js",
+            "@types/moment",
+            "chart.js",
+            "moment"
           ],
           "linkType": "HARD",
         }]
@@ -4433,6 +4439,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["daterangepicker", [
+        ["npm:3.1.0", {
+          "packageLocation": "./.yarn/cache/daterangepicker-npm-3.1.0-2d37a39109-33b8817ac9.zip/node_modules/daterangepicker/",
+          "packageDependencies": [
+            ["daterangepicker", "npm:3.1.0"],
+            ["jquery", "npm:3.6.0"],
+            ["moment", "npm:2.29.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["debug", [
         ["npm:2.6.9", {
           "packageLocation": "./.yarn/cache/debug-npm-2.6.9-7d4cb597dc-d2f51589ca.zip/node_modules/debug/",
@@ -4737,7 +4754,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@popperjs/core", "npm:2.9.3"],
             ["@types/babel__core", "npm:7.1.15"],
             ["@types/bootstrap", "npm:5.1.1"],
-            ["@types/bootstrap-datepicker", "npm:0.0.15"],
             ["@types/daterangepicker", "npm:3.1.4"],
             ["@types/enzyme", "npm:3.10.9"],
             ["@types/eslint", "npm:7.28.0"],
@@ -4757,10 +4773,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@yarnpkg/pnpify", "npm:3.0.1"],
             ["@yarnpkg/sdks", "npm:2.4.1-rc.4"],
             ["bootstrap", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:5.1.0"],
-            ["bootstrap-daterangepicker", "npm:3.1.0"],
             ["chart.js", "npm:3.5.0"],
+            ["chartjs-adapter-moment", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:1.0.0"],
             ["clean-webpack-plugin", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.0.0"],
             ["css-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:6.2.0"],
+            ["daterangepicker", "npm:3.1.0"],
             ["del-cli", "npm:4.0.1"],
             ["enzyme", "npm:3.11.0"],
             ["eslint", "npm:7.32.0"],
@@ -4787,6 +4804,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prettier", "npm:2.3.2"],
             ["prettier-eslint", "npm:13.0.0"],
             ["prettier-plugin-sh", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:0.7.1"],
+            ["raw-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:4.0.2"],
             ["sass-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:12.1.0"],
             ["source-map-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.0.0"],
             ["style-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:3.2.1"],
@@ -10142,6 +10160,30 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["http-errors", "npm:1.7.2"],
             ["iconv-lite", "npm:0.4.24"],
             ["unpipe", "npm:1.0.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["raw-loader", [
+        ["npm:4.0.2", {
+          "packageLocation": "./.yarn/cache/raw-loader-npm-4.0.2-94da6c700d-51cc1b0d0e.zip/node_modules/raw-loader/",
+          "packageDependencies": [
+            ["raw-loader", "npm:4.0.2"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:4.0.2", {
+          "packageLocation": "./.yarn/__virtual__/raw-loader-virtual-f21f82cbde/0/cache/raw-loader-npm-4.0.2-94da6c700d-51cc1b0d0e.zip/node_modules/raw-loader/",
+          "packageDependencies": [
+            ["raw-loader", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:4.0.2"],
+            ["@types/webpack", "npm:5.28.0"],
+            ["loader-utils", "npm:2.0.0"],
+            ["schema-utils", "npm:3.1.1"],
+            ["webpack", "virtual:ef56a38d41b886bde34bae47410db64bf63baa25fda326102c90249fd55cd4562c833c36c4038c22fb58969eb4656f5162c6295036290bc517f8e986ff421e87#npm:5.50.0"]
+          ],
+          "packagePeers": [
+            "@types/webpack",
+            "webpack"
           ],
           "linkType": "HARD",
         }]

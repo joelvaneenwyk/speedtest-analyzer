@@ -3,7 +3,7 @@ import HtmlPlugin from "html-webpack-plugin";
 import CssPlugin from "mini-css-extract-plugin";
 import { Configuration } from "webpack";
 import isProductionBuild from "./util/env";
-import paths from "./util/paths";
+import { paths, root } from "./util/paths";
 
 const PnpPlugin = require("pnp-webpack-plugin");
 
@@ -36,6 +36,7 @@ const frontend: Configuration = {
             meta: {
                 description: "Docker Speedtest Analyser Frontend"
             },
+            favicon: root("src/frontend", "favicon.ico"),
             inject: true,
             filename: "index.html",
             minify: {

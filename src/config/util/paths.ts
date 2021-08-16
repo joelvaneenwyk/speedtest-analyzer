@@ -1,13 +1,13 @@
 import path from "path";
 
-const root = (pathToFile: string, filename?: string) =>
+export const root = (pathToFile: string, filename?: string) =>
     path.resolve(__dirname, "../../..", filename ? `${pathToFile}/${filename}` : pathToFile);
 
 /**
  * The paths to the frontend app and server
  * TODO: Automate path finding, consider *resolve*-like module
  */
-const paths = {
+export const paths = {
     source: {
         frontend: {
             app: root("src/frontend", "index.ts"),
@@ -27,5 +27,3 @@ const paths = {
         tsconfig: root("tsconfig.json")
     }
 };
-
-export default paths;

@@ -5,7 +5,7 @@ import { Configuration, ProgressPlugin } from "webpack";
 import merge from "webpack-merge";
 import frontend from "./frontend.config";
 import isProductionBuild from "./util/env";
-import paths from "./util/paths";
+import { paths } from "./util/paths";
 
 const PnpPlugin = require("pnp-webpack-plugin");
 

@@ -9,7 +9,8 @@ import "./scss/home.scss";
 // You can specify which plugins you need
 import $ from "jquery";
 import moment from "moment";
-import Chart from "chart.js";
+import { Chart, ChartDataset, ChartData, registerables } from "chart.js";
+import "chartjs-adapter-moment";
 import Papa from "papaparse";
 import daterangepicker from "daterangepicker";
 
@@ -34,7 +35,7 @@ class MeasureRow {
     ping: number = 0;
     download: number = 0;
     upload: number = 0;
-    timestamp_s: number = 0;
+    time: moment.Moment = moment();
 
     constructor(header: string[], data: string[]) {
         for (let i = 0; i < data.length; i += 1) {
@@ -42,9 +43,7 @@ class MeasureRow {
             if (dataName == "timestamp") {
                 // from save ms timestamp
                 this.timestamp = parseInt(data[i]);
-
-                // from ms timestamp to seconds
-                this.timestamp_s = this.timestamp / 1000;
+                this.time = moment(this.timestamp, "X");
             } else if (dataName == "ping") {
                 this.ping = parseFloat(data[i]);
             } else if (dataName == "download") {
@@ -58,24 +57,50 @@ class MeasureRow {
 
 class ParseManager {
     header: string[] = [];
-    _startDate: moment.Moment = moment();
-    _endDate: moment.Moment = moment();
-    _chart: Chart.Chart | null = null;
+    _startDate: moment.Moment | undefined = undefined;
+    _endDate: moment.Moment | undefined = undefined;
+    _chart: Chart | null = null;
     i: number = 0;
     uploadCount: number = 0;
     downloadCount: number = 0;
 
-    _parseRow() {}
     /**
      * parse result.csv and create graph with _startDate and _endDate filter
      */
-    parse() {
+    parse(input: string = "data/result.csv", download: boolean = true) {
         this.i = 0;
 
         let parseManager = this;
 
-        Papa.parse("data/result.csv", {
-            download: true,
+        Papa.parse(input, {
+            download: download,
+            error(error: Papa.ParseError) {
+                console.log("Failed to load data.");
+
+                // timestamp,ping,download,upload
+                // 1622003836030.828,20.31,87.7,2.29
+                // 1622004027043.011,21.01,86.2,2.72
+                // 1622004114406.986,22.48,85.9,2.29
+                // 1622005257000.246,24.42,78.7,1.90
+
+                let today: moment.Moment = moment();
+                let time = moment().subtract(20, "d");
+                let csvData: string = "timestamp,ping,download,upload\n";
+
+                while (time.isBefore(today)) {
+                    let timestamp = moment(time)
+                        .add(Math.random() * 60 * 12, "m")
+                        .unix();
+                    let ping = Math.random() * 50 + 10;
+                    let download = Math.random() * 500 + 10;
+                    let upload = Math.random() * 30 + 10;
+                    csvData += `${timestamp.toString()},${ping},${download},${upload}\n`;
+                    time = time.add(1, "d");
+                }
+
+                console.log(csvData);
+                parseManager.parse(csvData, false);
+            },
             step(row: Papa.ParseResult<string>) {
                 parseManager.i += 1;
 
@@ -87,17 +112,14 @@ class ParseManager {
                     // Build csv array
                     const measureRow: MeasureRow = new MeasureRow(parseManager.header, dataArr);
 
-                    if (!!parseManager._startDate && !!parseManager._endDate) {
-                        if (
-                            measureRow.timestamp_s < parseManager._startDate.unix() ||
-                            measureRow.timestamp_s > parseManager._endDate.unix()
-                        ) {
-                            // Not in filter
-                            return;
-                        }
+                    console.log(`${measureRow.timestamp.toString()} ${measureRow.time.toString()}`);
+                    if (
+                        parseManager._startDate == undefined ||
+                        parseManager._endDate == undefined ||
+                        (measureRow.time.isAfter(parseManager._startDate) && measureRow.time.isBefore(parseManager._endDate))
+                    ) {
+                        parseManager.addRow(measureRow);
                     }
-
-                    parseManager.addRow(measureRow);
                 }
             }
         });
@@ -108,14 +130,14 @@ class ParseManager {
      *
      * @param measureRow
      */
-    addRow(measureRow: any) {
+    addRow(measureRow: MeasureRow) {
         if (this._chart != null && this._chart.config.data.labels !== undefined) {
             const chartData = this._chart.config.data;
-            const dataSets = chartData.datasets as Chart.ChartDataset<"line">[];
+            const dataSets = chartData.datasets as ChartDataset<"line">[];
 
-            this._chart.config.data.labels.push(this.getDateFromData(measureRow));
+            this._chart.config.data.labels.push(measureRow.time);
 
-            if (parseFloat(measureRow.upload) > parseFloat(measureRow.download)) {
+            if (measureRow.upload > measureRow.download) {
                 this.uploadCount += 1;
             } else {
                 this.downloadCount += 1;
@@ -126,10 +148,11 @@ class ParseManager {
             dataSets[2].data.push(measureRow.download);
 
             /**
-             * graph has to be filled dynamically whether upload or download is higher. See issue #10
+             * Graph has to be filled dynamically whether upload or download is higher.
              */
             const total = this.uploadCount + this.downloadCount;
             let largerValue = 0;
+
             if (this.uploadCount > this.downloadCount) {
                 dataSets[1].fill = "+1"; // fill upload till download line
                 dataSets[2].fill = "origin";
@@ -142,9 +165,9 @@ class ParseManager {
             }
 
             const percentDominated = (largerValue * 100) / total;
+
             if (percentDominated < 70) {
-                // threshold
-                // no fill for upload because more than 30% overlapping
+                //Threshold: No fill for upload because more than 30% overlapping
                 dataSets[1].fill = false;
                 dataSets[2].fill = true;
             }
@@ -168,11 +191,8 @@ class ParseManager {
         }
 
         callback();
-        return true;
-    }
 
-    getDateFromData(measureRow: MeasureRow) {
-        return moment(new Date(measureRow.timestamp)).format("L - LT");
+        return true;
     }
 
     /**
@@ -181,7 +201,7 @@ class ParseManager {
      * @param startDate
      * @returns {ParseManager}
      */
-    setStartDate(startDate: moment.MomentInput) {
+    setStartDate(startDate: moment.MomentInput): ParseManager {
         this._startDate = moment(startDate);
         return this;
     }
@@ -192,7 +212,7 @@ class ParseManager {
      * @param endDate
      * @returns {ParseManager}
      */
-    setEndDate(endDate: moment.MomentInput) {
+    setEndDate(endDate: moment.MomentInput): ParseManager {
         this._endDate = moment(endDate);
         return this;
     }
@@ -202,7 +222,7 @@ class ParseManager {
      * @param chart {*|e}
      * @returns {ParseManager}
      */
-    setChart(chart: Chart.Chart | null) {
+    setChart(chart: Chart | null): ParseManager {
         this._chart = chart;
         return this;
     }
@@ -213,7 +233,7 @@ class ParseManager {
      * @param startDate
      * @param endDate
      */
-    update(startDate: any, endDate: any) {
+    update(startDate: moment.Moment, endDate: moment.Moment) {
         this._startDate = startDate;
         this._endDate = endDate;
         this.flushChart(true, () => this.parse());
@@ -231,7 +251,7 @@ class AppConfig {
     dateFormat: string = "YYYY.MM.DD";
     locale: string = "en";
     labels: AppConfigLabels = new AppConfigLabels();
-    _chart: Chart.Chart | null = null;
+    _chart: Chart | null = null;
     daterange: daterangepicker.Options | null = null;
 }
 
@@ -275,46 +295,59 @@ $(function () {
         $("#title").html(appConfig.customTitle);
     }
 
-    const data: Chart.ChartData<"line"> = {
-        labels: [],
-        datasets: [
-            {
-                label: appConfig.labels.ping,
-                fill: false,
-                backgroundColor: colors.black,
-                borderColor: colors.black,
-                tension: 0
-            },
-            {
-                label: appConfig.labels.upload,
-                //isMB: true,
-                fill: false,
-                backgroundColor: colors.green,
-                borderColor: colors.green,
-                tension: 0
-            },
-            {
-                label: appConfig.labels.download,
-                //isMB: true,
-                fill: true,
-                backgroundColor: colors.orange,
-                borderColor: colors.orange,
-                tension: 0
-            }
-        ] as Chart.ChartDataset<"line">[]
-    };
+    Chart.register(...registerables);
 
-    const chartCanvas = <HTMLCanvasElement>$("#speedChart").get(0);
-    const chartDom = chartCanvas.getContext("2d");
-    let chartJS: Chart.Chart | null = null;
+    const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
+    const chartContext = chartCanvas.getContext("2d");
+    let chartJS: Chart | null = null;
 
-    if (chartDom != null) {
-        chartJS = new Chart.Chart(chartDom, {
+    if (chartContext != null) {
+        chartJS = new Chart(chartContext, {
             type: "line",
-            data,
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: appConfig.labels.ping,
+                        fill: false,
+                        backgroundColor: colors.black,
+                        borderColor: colors.black,
+                        tension: 0
+                    },
+                    {
+                        label: appConfig.labels.upload,
+                        //isMB: true,
+                        fill: false,
+                        backgroundColor: colors.green,
+                        borderColor: colors.green,
+                        tension: 0
+                    },
+                    {
+                        label: appConfig.labels.download,
+                        //isMB: true,
+                        fill: true,
+                        backgroundColor: colors.orange,
+                        borderColor: colors.orange,
+                        tension: 0
+                    }
+                ] as ChartDataset<"line">[]
+            } as ChartData<"line">,
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                hover: {
+                    mode: "nearest",
+                    intersect: true
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        type: "time",
+                        time: {
+                            unit: "day"
+                        }
+                    }
+                }
                 //tooltips: {
                 //    mode: "index",
                 //    intersect: false,
@@ -327,10 +360,6 @@ $(function () {
                 //        }
                 //    }
                 //},
-                hover: {
-                    mode: "nearest",
-                    intersect: true
-                }
                 //multiTooltipTemplate: `
                 // <%if (datasetLabel){%>
                 //     <%=datasetLabel%>:
@@ -360,16 +389,18 @@ $(function () {
 
         parseManager.setChart(chartJS);
 
-        const dateRange = $("input[name='daterange']");
-
-        dateRange.daterangepicker(daterangeConfig, function (start: any, end: any) {
+        const dateRange = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
+            start: moment.Moment,
+            end: moment.Moment
+        ) {
             parseManager.update(start, end);
         });
 
         moment.locale(appConfig.locale);
 
         if (appConfig.daterange != null && appConfig.daterange.startDate && appConfig.daterange.endDate) {
-            parseManager.setStartDate(appConfig.daterange.startDate).setEndDate(appConfig.daterange.endDate);
+            parseManager.setStartDate(appConfig.daterange.startDate);
+            parseManager.setEndDate(appConfig.daterange.endDate);
         }
         parseManager.parse();
 

@@ -969,15 +969,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/bootstrap-datepicker@npm:^0.0.15":
-  version: 0.0.15
-  resolution: "@types/bootstrap-datepicker@npm:0.0.15"
-  dependencies:
-    "@types/jquery": "*"
-  checksum: 82d659500da84470062502cf98a93ebc16217f1217567d026823f2436f8489d3a5ce8853b7a077907b49b0269cddb50b4c9cf108aa254c90a2b1f611927dfc58
-  languageName: node
-  linkType: hard
-
 "@types/bootstrap@npm:^5":
   version: 5.1.1
   resolution: "@types/bootstrap@npm:5.1.1"
@@ -2556,16 +2547,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap-daterangepicker@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "bootstrap-daterangepicker@npm:3.1.0"
-  dependencies:
-    jquery: ">=1.10"
-    moment: ^2.9.0
-  checksum: 3a45c28d4839b41984147bb58fa124e3fb01fa65c1b106b1278448c3440414a7489bd82af83e2d237fba227463f3f4381ca00689058b51db1e4d6868f6218490
-  languageName: node
-  linkType: hard
-
 "bootstrap@npm:^5.1.0":
   version: 5.1.0
   resolution: "bootstrap@npm:5.1.0"
@@ -2819,6 +2800,16 @@ __metadata:
   version: 3.5.0
   resolution: "chart.js@npm:3.5.0"
   checksum: 9ce5400b3e98000511a727968bbbbc06988e9b76e964f7fb22c078cd733756604a04692c255d4e91a8c7a0cb963f9e40190bee16bb2c9640bd34a255267aff5f
+  languageName: node
+  linkType: hard
+
+"chartjs-adapter-moment@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "chartjs-adapter-moment@npm:1.0.0"
+  peerDependencies:
+    chart.js: ^3.0.0
+    moment: ^2.10.2
+  checksum: d1efe7d9d7b08e93111db93e684cf3b3aa656144b2e0d4cd9efcaaf62a7493799762d6467c85a6410dda21438ccaad5d1e887243ce8130f8bc384e775a9edd00
   languageName: node
   linkType: hard
 
@@ -3323,6 +3314,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"daterangepicker@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "daterangepicker@npm:3.1.0"
+  dependencies:
+    jquery: ">=1.10"
+    moment: ^2.9.0
+  checksum: 33b8817ac906fbc185f223c6c89c17a769b4506437b5383e3cea95c963b68d914a700f4f5f7e9d3d5dab7e5af10d6aeccaa75298276f8f8bfea412981604a7b2
+  languageName: node
+  linkType: hard
+
 "debug@npm:2.6.9, debug@npm:^2.6.9":
   version: 2.6.9
   resolution: "debug@npm:2.6.9"
@@ -3563,7 +3564,6 @@ __metadata:
     "@popperjs/core": ^2.9.3
     "@types/babel__core": 7.1.15
     "@types/bootstrap": ^5
-    "@types/bootstrap-datepicker": ^0.0.15
     "@types/daterangepicker": ^3.1.4
     "@types/enzyme": 3.10.9
     "@types/eslint": 7.28.0
@@ -3583,10 +3583,11 @@ __metadata:
     "@yarnpkg/pnpify": ^3.0.1
     "@yarnpkg/sdks": ^2.4.1-rc.4
     bootstrap: ^5.1.0
-    bootstrap-daterangepicker: ^3.1.0
     chart.js: ^3.5.0
+    chartjs-adapter-moment: ^1.0.0
     clean-webpack-plugin: ^3.0.0
     css-loader: ^6.2.0
+    daterangepicker: ^3.1.0
     del-cli: ^4.0.1
     enzyme: ^3.11.0
     eslint: ^7.32.0
@@ -3613,6 +3614,7 @@ __metadata:
     prettier: ^2.3.2
     prettier-eslint: ^13.0.0
     prettier-plugin-sh: ^0.7.1
+    raw-loader: ^4.0.2
     sass-loader: ^12.1.0
     source-map-loader: ^3.0.0
     style-loader: ^3.2.1
@@ -8235,6 +8237,18 @@ __metadata:
     iconv-lite: 0.4.24
     unpipe: 1.0.0
   checksum: 6343906939e018c6e633a34a938a5d6d1e93ffcfa48646e00207d53b418e941953b521473950c079347220944dc75ba10e7b3c08bf97e3ac72c7624882db09bb
+  languageName: node
+  linkType: hard
+
+"raw-loader@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "raw-loader@npm:4.0.2"
+  dependencies:
+    loader-utils: ^2.0.0
+    schema-utils: ^3.0.0
+  peerDependencies:
+    webpack: ^4.0.0 || ^5.0.0
+  checksum: 51cc1b0d0e8c37c4336b5318f3b2c9c51d6998ad6f56ea09612afcfefc9c1f596341309e934a744ae907177f28efc9f1654eacd62151e82853fcc6d37450e795
   languageName: node
   linkType: hard
 
