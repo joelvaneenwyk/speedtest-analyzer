@@ -1,6 +1,6 @@
 {
     "name": "docker-speedtest-analyser",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "repository": {
         "type": "git",
         "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
@@ -9,28 +9,23 @@
     "license": "MIT",
     "dependencies": {
         "@popperjs/core": "^2.9.3",
-        "@yarnpkg/pnpify": "^3.0.1",
-        "@yarnpkg/sdks": "^2.4.1-rc.4",
         "bootstrap": "^5.1.0",
         "bootstrap-daterangepicker": "^3.1.0",
         "chart.js": "^3.5.0",
         "jquery": "^3.6.0",
         "moment": "^2.29.1",
         "papaparse": "^5.3.1",
-        "popper.js": "^1.16.1",
-        "prettier": "^2.3.2",
-        "prettier-eslint": "^13.0.0",
-        "prettier-plugin-sh": "^0.7.1"
+        "popper.js": "^1.16.1"
     },
     "engines": {
         "node": "^14.0.0",
         "npm": "^7.0.0",
-        "yarn": "^1.0.0"
+        "yarn": "^3.0.0"
     },
-    "packageManager": "yarn@3.0.1-rc.2",
+    "packageManager": "yarn@3.0.1",
     "scripts": {
         "dev": "yarn sdks",
-        "docker": "docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans --renew-anon-volumes",
+        "docker": "docker-compose down --rmi all --volumes --remove-orphans && docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans",
         "test": "pip install speedtest-cli && python scripts/runSpeedtest.py"
     },
     "dependenciesMeta": {
@@ -57,8 +52,13 @@
         }
     },
     "devDependencies": {
+        "@yarnpkg/pnpify": "^3.0.1",
+        "@yarnpkg/sdks": "^2.4.1-rc.4",
         "eslint": "^7.32.0",
         "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-plugin-import": "^2.24.0"
+        "eslint-plugin-import": "^2.24.0",
+        "prettier": "^2.3.2",
+        "prettier-eslint": "^13.0.0",
+        "prettier-plugin-sh": "^0.7.1"
     }
 }

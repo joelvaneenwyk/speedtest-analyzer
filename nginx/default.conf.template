@@ -21,8 +21,9 @@ server {
     }
 
     location /run_speedtest {
-        set $exec "${NGINX_WEB_ROOT}/scripts/runSpeedtest.py";
-        content_by_lua "os.execute(ngx.var.exec)";
+        content_by_lua_block {
+            os.execute("${NGINX_WEB_ROOT}/scripts/runSpeedtest.sh")
+        }
     }
 }
 
@@ -53,7 +54,8 @@ server {
     }
 
     location /run_speedtest {
-        set $exec "${NGINX_WEB_ROOT}/scripts/runSpeedtest.py";
-        content_by_lua "os.execute(ngx.var.exec)";
+        content_by_lua_block {
+            os.execute("${NGINX_WEB_ROOT}/scripts/runSpeedtest.sh")
+        }
     }
 }

@@ -8,30 +8,26 @@ ARG NginxWebRoot=/usr/share/nginx/html
 ENV NGINX_WEB_ROOT=${NginxWebRoot}
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 
-RUN echo "Initiating Docker build of Speedtest analyser."
-
 # Install dependencies
 RUN apk update && apk add \
-  bash \
-  git \
-  nodejs \
-  npm \
-  python3 \
-  py3-pip
+    bash \
+    git \
+    nodejs \
+    npm
 
-RUN pip3 install speedtest-cli
+RUN apk add python3 py3-pip
 
 RUN npm install -g yarn
 
 # Create directory structure and required files if they do not exist
 RUN \
-mkdir -p /run/nginx/ \
-&& mkdir -p /etc/nginx/global/ \
-&& mkdir -p ${NginxWebRoot}/ \
-&& mkdir -p ${NginxWebRoot}/logs/ \
-&& mkdir -p /etc/nginx/modules/ \
-&& touch /var/log/nginx/access.log \
-&& touch /var/log/nginx/error.log
+    mkdir -p /run/nginx/ \
+    && mkdir -p /etc/nginx/global/ \
+    && mkdir -p ${NginxWebRoot}/ \
+    && mkdir -p ${NginxWebRoot}/logs/ \
+    && mkdir -p /etc/nginx/modules/ \
+    && touch /var/log/nginx/access.log \
+    && touch /var/log/nginx/error.log
 
 # Default web content goes here in newer versions of nginx
 WORKDIR ${NginxWebRoot}
@@ -40,21 +36,34 @@ WORKDIR ${NginxWebRoot}
 COPY ./ ./
 
 # Install dependencies
-RUN yarn install
+RUN yarn workspaces focus --production
 
 # Install default configuration. We use a template here which handles variable substitution for
 # us, see https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration
 RUN \
-mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
-&& cp -a "${NginxWebRoot}/templates/." "$NGINX_ENVSUBST_TEMPLATE_DIR/" \
-&& cp -f "${NginxWebRoot}/config/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
+    mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
+    && cp -f "${NginxWebRoot}/nginx/default.conf.template" "$NGINX_ENVSUBST_TEMPLATE_DIR/default.conf.template" \
+    && cp -f "${NginxWebRoot}/nginx/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
 
 # Update permissions so that nginx server can touch/modify files as needed
 RUN chown -R nginx:nginx ${NginxWebRoot}/
-RUN chmod a+x ${NginxWebRoot}/config/run.sh
+RUN chmod a+x ${NginxWebRoot}/scripts/run.sh
 RUN chmod a+x ${NginxWebRoot}/scripts/runSpeedtest.py
+
+RUN mkdir -p /var/cache/nginx/.local/
+RUN chown -R nginx:nginx /var/cache/nginx/
+RUN find /var/cache/nginx/ -type d -exec chmod 755 '{}' ';'
+RUN find /var/cache/nginx/ -type f -exec chmod 644 '{}' ';'
+
+USER nginx
+
+# Clone and install latest speedtest
+RUN git clone https://github.com/sivel/speedtest-cli.git "/var/cache/nginx/.local/speedtest-cli"
+RUN python3 -m pip install --user /var/cache/nginx/.local/speedtest-cli/
+
+USER root
 
 EXPOSE 80
 EXPOSE 443
 
-ENTRYPOINT ["sh", "-c", "$NGINX_WEB_ROOT/config/run.sh"]
+ENTRYPOINT ["sh", "-c", "$NGINX_WEB_ROOT/scripts/run.sh"]

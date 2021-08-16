@@ -1,16 +1,17 @@
 #
-# Ignore everything we can build locally.
+# Ignore everything needed to build production server.
 #
 
 .vscode/
+.github/
+
+node_modules/
+dist/
 
 .yarn/*
 !.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
 
-.jshintrc
 **/*.png
 **/*.pyc
-Dockerfile
-docker-compose.yaml
-
-node_modules/

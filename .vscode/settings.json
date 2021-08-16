@@ -8,29 +8,40 @@
         "editor.formatOnSave": true
     },
     "json.format.enable": false,
-
+    "[dockerfile]": {
+        "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+        "editor.quickSuggestions": {
+            "strings": true
+        }
+    },
+    "[dockercompose]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
     },
-
     "eslint.nodePath": ".yarn/sdks",
     "prettier.eslintIntegration": true,
     "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-
     "files.associations": {
         "tsconfig.json": "jsonc",
         ".eslintrc.json": "jsonc",
-        "*.json.git": "jsonc"
+        "*.json.git": "jsonc",
+        "default.conf.template": "nginx"
     },
-
     "search.exclude": {
         "**/.yarn": true,
         "**/.pnp.*": true
     },
-
     "liveServer.settings.port": 13100,
-
     "cSpell.ignorePaths": [
         "**/package-lock.json",
         "**/node_modules/**",
@@ -49,8 +60,10 @@
         "daterangepicker",
         "dockerhu",
         "dockerhub",
+        "errno",
         "github",
         "joelvaneenwyk",
+        "libc",
         "mbit",
         "os",
         "p",

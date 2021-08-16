@@ -17,9 +17,9 @@ const ButtonHelper = function (btn) {
 
 // eslint-disable-next-line prefer-const
 let appConfig = {
-    customTitle: "Statistics",
+    customTitle: "Speedtest Statistics v1.4.3",
     dateFormat: "YYYY.MM.DD",
-    locale: "de",
+    locale: "en",
     labels: {
         download: "Download",
         ping: "Ping",
@@ -46,6 +46,14 @@ let appConfig = {
         }
     }
 };
+
+$.getScript("data/config.js")
+    .done(function (script, textStatus) {
+        console.log(`Loaded custom configuration. Status: '${textStatus}'`);
+    })
+    .fail(function () {
+        console.log("No custom configuration available."); // 200
+    });
 
 jQuery(document).ready(function () {
     const colors = {
