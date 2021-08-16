@@ -7,58 +7,97 @@
     },
     "main": "scripts/runSpeedtest.py",
     "license": "MIT",
-    "dependencies": {
-        "@popperjs/core": "^2.9.3",
-        "bootstrap": "^5.1.0",
-        "bootstrap-daterangepicker": "^3.1.0",
-        "chart.js": "^3.5.0",
-        "jquery": "^3.6.0",
-        "moment": "^2.29.1",
-        "papaparse": "^5.3.1",
-        "popper.js": "^1.16.1"
-    },
     "engines": {
         "node": "^14.0.0",
         "npm": "^7.0.0",
         "yarn": "^3.0.0"
     },
     "packageManager": "yarn@3.0.1",
+    "dependencies": {
+        "@babel/core": "^7.15.0",
+        "@babel/plugin-transform-modules-commonjs": "^7.15.0",
+        "@babel/preset-typescript": "^7.15.0",
+        "@popperjs/core": "^2.9.3",
+        "@types/babel__core": "7.1.15",
+        "@types/bootstrap": "^5",
+        "@types/bootstrap-datepicker": "^0.0.15",
+        "@types/daterangepicker": "^3.1.4",
+        "@types/enzyme": "3.10.9",
+        "@types/eslint": "7.28.0",
+        "@types/eslint-plugin-prettier": "3.1.0",
+        "@types/express": "4.17.13",
+        "@types/jest": "^27.0.1",
+        "@types/jquery": "^3.5.6",
+        "@types/mini-css-extract-plugin": "2.2.0",
+        "@types/node": "^16.6.1",
+        "@types/node-sass": "4.11.2",
+        "@types/papaparse": "^5.2.6",
+        "@types/prettier": "2.3.2",
+        "@types/supertest": "2.0.11",
+        "@types/webpack": "5.28.0",
+        "@typescript-eslint/eslint-plugin": "^4.29.2",
+        "@typescript-eslint/parser": "^4.29.2",
+        "@yarnpkg/pnpify": "^3.0.1",
+        "@yarnpkg/sdks": "^2.4.1-rc.4",
+        "bootstrap": "^5.1.0",
+        "bootstrap-daterangepicker": "^3.1.0",
+        "chart.js": "^3.5.0",
+        "clean-webpack-plugin": "^3.0.0",
+        "css-loader": "^6.2.0",
+        "del-cli": "^4.0.1",
+        "enzyme": "^3.11.0",
+        "eslint": "^7.32.0",
+        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-import": "^2.24.0",
+        "eslint-plugin-prettier": "^3.4.0",
+        "express": "^4.17.1",
+        "fork-ts-checker-webpack-plugin": "^6.3.2",
+        "html-loader": "^2.1.2",
+        "html-webpack-plugin": "^5.3.2",
+        "jest": "^27.0.6",
+        "jest-environment-node": "^27.0.6",
+        "jquery": "^3.6.0",
+        "mini-css-extract-plugin": "^2.2.0",
+        "moment": "^2.29.1",
+        "node-sass": "^6.0.1",
+        "open-cli": "^7.0.0",
+        "papaparse": "^5.3.1",
+        "pnp-webpack-plugin": "^1.7.0",
+        "popper.js": "^1.16.1",
+        "postcss": "^8.3.6",
+        "postcss-loader": "^6.1.1",
+        "prettier": "^2.3.2",
+        "prettier-eslint": "^13.0.0",
+        "prettier-plugin-sh": "^0.7.1",
+        "sass-loader": "^12.1.0",
+        "source-map-loader": "^3.0.0",
+        "style-loader": "^3.2.1",
+        "supertest": "^6.1.5",
+        "thread-loader": "^3.0.4",
+        "ts-loader": "^9.2.5",
+        "ts-node": "^10.2.0",
+        "tslib": "^2.3.1",
+        "typescript": "^4.3.5",
+        "typescript-styled-plugin": "^0.18.1",
+        "webpack": "^5.50.0",
+        "webpack-cli": "^4.8.0",
+        "webpack-merge": "^5.8.0"
+    },
     "scripts": {
-        "dev": "yarn sdks",
+        "setup": "yarn install && yarn plugin import typescript && yarn plugin import workspace-tools && yarn sdks",
+        "build": "yarn _webpack",
+        "prod": "NODE_ENV=production && yarn _webpack",
+        "doctor": "yarn dlx @yarnpkg/doctor",
+        "lint": "eslint './frontend/**/*.{ts, tsx}' --fix",
+        "start": "echo \"Webpack Dev Server not implemented in 1.0 due to virtual folder issues.\"",
+        "_webpack": "webpack-cli --config ./src/config/webpack.config.ts",
         "docker": "docker-compose down --rmi all --volumes --remove-orphans && docker-compose up --always-recreate-deps --force-recreate --build --remove-orphans",
         "test": "pip install speedtest-cli && python scripts/runSpeedtest.py"
     },
     "dependenciesMeta": {
         "bootstrap@5.1.0": {
             "unplugged": true
-        },
-        "bootstrap-daterangepicker@3.1.0": {
-            "unplugged": true
-        },
-        "chart.js@3.5.0": {
-            "unplugged": true
-        },
-        "jquery@3.6.0": {
-            "unplugged": true
-        },
-        "moment@2.29.1": {
-            "unplugged": true
-        },
-        "papaparse@5.3.1": {
-            "unplugged": true
-        },
-        "popper.js@1.16.1": {
-            "unplugged": true
         }
-    },
-    "devDependencies": {
-        "@yarnpkg/pnpify": "^3.0.1",
-        "@yarnpkg/sdks": "^2.4.1-rc.4",
-        "eslint": "^7.32.0",
-        "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-plugin-import": "^2.24.0",
-        "prettier": "^2.3.2",
-        "prettier-eslint": "^13.0.0",
-        "prettier-plugin-sh": "^0.7.1"
     }
 }

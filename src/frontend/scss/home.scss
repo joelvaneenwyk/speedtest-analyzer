@@ -1,0 +1,17 @@
+@import 'colors';
+@import 'global';
+@import "~bootstrap/scss/bootstrap.scss";
+
+.title-area {
+  background-color: $bfl-light;
+  text-align: center;
+  padding: 8vh;
+}
+
+.demo-area {
+  background-color: $bfl-dark;
+  color: $bfl-light;
+  flex-grow: 1;
+  text-align: center;
+  padding: 4vh;
+}

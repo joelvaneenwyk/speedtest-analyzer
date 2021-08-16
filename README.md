@@ -56,15 +56,10 @@ You can configure the visualization frontend using JavaScript.
 5. papaparse
 6. speedtest-cli
 
-## License
-
-I kindly ask not to re-distribute this repo on hub.docker.com if it's not indispensable.
-
 ## Disclaimer / Off topic
 
 This small tool was originally written for private use on Synology NAS. The original twitter function is removed in this version.
 
-If you want to contribute and report / fix bugs or bring the feature stuff written for your
-own setup, don't be shy.
+If you want to contribute and report / fix bugs or bring the feature stuff written for your own setup, don't be shy.
 
 Have fun and test your speed! 😊

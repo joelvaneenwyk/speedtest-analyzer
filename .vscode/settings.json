@@ -1,4 +1,11 @@
 {
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true
+    },
+
+    "npm.packageManager": "yarn",
+
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
@@ -8,12 +15,14 @@
         "editor.formatOnSave": true
     },
     "json.format.enable": false,
+
     "[dockerfile]": {
         "editor.defaultFormatter": "ms-azuretools.vscode-docker",
         "editor.quickSuggestions": {
             "strings": true
         }
     },
+
     "[dockercompose]": {
         "editor.insertSpaces": true,
         "editor.tabSize": 2,
@@ -24,13 +33,33 @@
             "strings": true
         }
     },
+
     "[javascript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
     },
+
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "typescript.validate.enable": true,
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.tsdk": ".yarn/sdks/typescript/lib",
+
+    "shellcheck.enable": false,
+
+    "eslint.validate": ["javascript", "typescript"],
+    "eslint.alwaysShowStatus": true,
+    "eslint.run": "onSave",
     "eslint.nodePath": ".yarn/sdks",
+
     "prettier.eslintIntegration": true,
     "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+
+    "liveServer.settings.root": "/build",
+    "liveServer.settings.port": 14400,
+
     "files.associations": {
         "tsconfig.json": "jsonc",
         ".eslintrc.json": "jsonc",
@@ -41,7 +70,7 @@
         "**/.yarn": true,
         "**/.pnp.*": true
     },
-    "liveServer.settings.port": 13100,
+
     "cSpell.ignorePaths": [
         "**/package-lock.json",
         "**/node_modules/**",
@@ -49,13 +78,15 @@
         "**/.git/objects/**",
         ".vscode",
         ".vscode-insiders",
-        ".eslintrc.json"
+        ".eslintrc.json",
+        ".yarn/**"
     ],
     "cSpell.words": [
         "action",
         "aleksey",
         "bootstrap",
         "buildx",
+        "datepicker",
         "daterange",
         "daterangepicker",
         "dockerhu",

@@ -1,5 +1,10 @@
 module.exports = {
     semi: true,
+    trailingComma: "none",
+    singleQuote: false,
+    jsxSingleQuote: false,
+    printWidth: 130,
+    tabWidth: 4,
     overrides: [
         {
             files: ["**/*.json"],

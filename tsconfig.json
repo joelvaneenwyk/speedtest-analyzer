@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "incremental": true,
+        "target": "esnext",
+        "module": "commonjs",
+        "declaration": false,
+        "sourceMap": true,
+        "outDir": "./build",
+        "tsBuildInfoFile": "./ignorable-build-cache.json",
+        "removeComments": true,
+        "importHelpers": true,
+        "downlevelIteration": true,
+        "isolatedModules": false,
+        "strict": true,
+        "alwaysStrict": true,
+        "moduleResolution": "node",
+        "baseUrl": "./src",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "plugins": [
+            {
+                "name": "typescript-styled-plugin"
+            }
+        ]
+    }
+}
