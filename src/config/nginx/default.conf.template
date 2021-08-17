@@ -1,7 +1,7 @@
 # HTTP server
 #
 server {
-    server_name "speedtest_analyser";
+    server_name "${SSL_ROOT_NAME}";
 
     ssl_certificate "${SSL_CERTIFICATE_ROOT}/${SSL_ROOT_NAME}.crt";
     ssl_certificate_key "${SSL_CERTIFICATE_ROOT}/${SSL_ROOT_NAME}.key";

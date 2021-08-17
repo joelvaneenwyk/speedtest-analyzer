@@ -11,7 +11,7 @@ ENV NGINX_ROOT=${NginxRoot}
 ENV NGINX_WEB_ROOT=${NginxRoot}/html
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 ENV SSL_CERTIFICATE_ROOT=${SSL_CERTIFICATE_ROOT}
-ENV SSL_ROOT_NAME="speedtest_analyser"
+ENV SSL_ROOT_NAME="speedtest_analyzer"
 
 # Install dependencies
 RUN apk update && apk add \

@@ -1,13 +1,13 @@
 # Docker Speedtest Analyser
 
-Automated docker speedtest analyser tool with included web interface to monitor your internet speed connection over time. Setup at home on your NAS (Synology, QNAP tested) and the container runs hourly speedtests. The speedtest results are displayed in an web interface as line graph(s) over the day.
+Automated docker speedtest analyzer tool with included web interface to monitor your internet speed connection over time. Setup at home on your NAS (Synology, QNAP tested) and the container runs hourly speedtests. The speedtest results are displayed in an web interface as line graph(s) over the day.
 
 This repository is based on the excellent [roest01/docker-speedtest-analyser](https://github.com/roest01/docker-speedtest-analyser). This version, however, has diverged significantly and is now maintained separately by [@joelvaneenwyk](https://github.com/joelvaneenwyk).
 
 ## Overview
 
 1. Docker image is built off [fabiocicerchia/nginx-lua](https://github.com/fabiocicerchia/nginx-lua) to get latest NGINX and Lua modules by default.
-2. Repository is automatically deployed to [Docker Hub](https://hub.docker.com/repository/docker/joelvaneenwyk/docker-speedtest-analyser)
+2. Repository is automatically deployed to [Docker Hub](https://hub.docker.com/repository/docker/joelvaneenwyk/speedtest-analyzer)
 3. Data is saved to  `/usr/share/nginx/html/data/results.csv` on Docker instance. Mount this data folder.
 4. ⚠ NGINX is prepared but not configured for SSL
 
@@ -20,7 +20,7 @@ It used [speedtest-cli](https://github.com/sivel/speedtest-cli) to make speedtes
 
 ## Installation
 
-The SpeedTest analyser is expected to run out-of-the-box with [Docker](https://www.docker.com/).
+The SpeedTest analyzer is expected to run out-of-the-box with [Docker](https://www.docker.com/).
 
 **Important:** To keep the history of speedtest within a rebuild of the container please mount a volume in `/usr/share/nginx/html/data/`.
 

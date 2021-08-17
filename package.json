@@ -1,9 +1,9 @@
 {
-    "name": "docker-speedtest-analyser",
-    "version": "1.4.3",
+    "name": "docker-speedtest-analyzer",
+    "version": "1.4.4",
     "repository": {
         "type": "git",
-        "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyser.git"
+        "url": "https://github.com/joelvaneenwyk/docker-speedtest-analyzer.git"
     },
     "main": "src/frontend/index.ts",
     "license": "MIT",
