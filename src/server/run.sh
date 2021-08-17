@@ -9,8 +9,8 @@ echo "Speedtest root: '$_script_home'"
 echo "NGINX web root: '$NGINX_WEB_ROOT'"
 
 # Create a default configuration override if one does not exist
-if [ ! -f "$_script_home/data/config.js" ]; then
-    cp -f "$_script_home/js/config.template.js" "$_script_home/data/config.js"
+if [ ! -f "$_script_home/html/data/config.js" ]; then
+    cp -f "$_script_home/src/config/config.template.js" "$_script_home/html/data/config.js"
 fi
 
 _crontab="$HOME/.config/crontab"

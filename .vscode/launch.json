@@ -16,7 +16,7 @@
             "request": "launch",
             "type": "pwa-msedge",
             "url": "http://localhost:14400",
-            "webRoot": "${workspaceFolder}/build"
+            "webRoot": "${workspaceFolder}/html"
         },
         {
             "name": "Python: Current File",

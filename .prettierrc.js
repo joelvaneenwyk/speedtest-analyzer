@@ -15,6 +15,22 @@ module.exports = {
             }
         },
         {
+            files: ["**/*.yml"],
+            options: {
+                tabWidth: 2,
+                printWidth: 130,
+                proseWrap: "preserve"
+            }
+        },
+        {
+            files: ["**/*.py"],
+            options: {
+                tabWidth: 4,
+                printWidth: 130,
+                proseWrap: "preserve"
+            }
+        },
+        {
             files: ["**/*.md"],
             options: {
                 tabWidth: 2,

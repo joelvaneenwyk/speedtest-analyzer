@@ -9,10 +9,45 @@
   padding: 8vh;
 }
 
+.main-wrapper {
+  height: 100vh;
+}
+
+.section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.half {
+  background: #f9f9f9;
+  height: 50%;
+  width: 100%;
+  margin: 15px 0;
+}
+
 .demo-area {
   background-color: $bfl-dark;
   color: $bfl-light;
   flex-grow: 1;
   text-align: center;
   padding: 4vh;
+}
+
+.chart-header {
+  height: 20%;
+  min-height: 150px;
+}
+
+.chart-container {
+  height: 75%;
+}
+
+canvas {
+  width: 100% !important;
+  min-width: 100px;
+  min-height: 100px;
+  height: auto !important;
 }

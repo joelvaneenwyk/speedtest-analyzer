@@ -1,3 +1,7 @@
+#
+# Files to ignore for Typescript, Python, and Webconfig
+#
+
 .mypy_cache
 node_modules
 
@@ -11,5 +15,12 @@ yarn-error.log
 
 *.pyc
 
+html/
+
+#
+# Legacy paths that are no longer used.
+#
+
 data/config.js
 build/
+dist/

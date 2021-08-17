@@ -51,7 +51,16 @@
     "prettier.eslintIntegration": true,
     "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
 
-    "liveServer.settings.root": "/build",
+    "[python]": {
+        "editor.formatOnSave": true
+    },
+    "python.formatting.provider": "black",
+    "python.linting.pylintEnabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+
+    "liveServer.settings.root": "/html",
     "liveServer.settings.port": 14400,
 
     "files.associations": {
@@ -74,13 +83,16 @@
         ".vscode",
         ".vscode-insiders",
         ".eslintrc.json",
-        ".yarn/**"
+        ".yarn/**",
+        "html/**",
+        "yarn.lock"
     ],
     "cSpell.words": [
         "action",
         "aleksey",
         "bootstrap",
         "buildx",
+        "chartjs",
         "datepicker",
         "daterange",
         "daterangepicker",

@@ -11,17 +11,12 @@ export const paths = {
     source: {
         frontend: {
             app: root("src/frontend", "index.ts"),
-            root: root("frontend")
-        },
-        template: {
-            html: root("src/frontend", "index.html")
+            template: root("src/frontend", "index.html")
         }
     },
-    build: {
-        root: root("build"),
-        public: {
-            html: root("build", "index.html")
-        }
+    public: {
+        root: root("html"),
+        html: root("html", "index.html")
     },
     config: {
         tsconfig: root("tsconfig.json")

@@ -1,14 +1,14 @@
 version: "3.7"
 services:
-  speedtest:
-    build: .
-    container_name: speedtest_analyser
-    image: joelvaneenwyk/docker-speedtest-analyser
-    restart: unless-stopped
-    volumes:
-      - ./data/:/usr/share/nginx/html/data/
-    ports:
-      - 15010:80
-      - 15011:443
-    environment:
-      - CRONJOB_ITERATION=15
+    speedtest:
+        build: .
+        container_name: speedtest_analyser
+        image: joelvaneenwyk/docker-speedtest-analyser
+        restart: unless-stopped
+        volumes:
+            - ./html/data/:/usr/share/nginx/html/data/
+        ports:
+            - 15010:80
+            - 15011:443
+        environment:
+            - CRONJOB_ITERATION=15

@@ -52,7 +52,7 @@ const frontend: Configuration = {
                 minifyURLs: true
             },
             scriptLoading: "blocking",
-            template: paths.source.template.html
+            template: paths.source.frontend.template
         }),
         new CssPlugin({
             filename: `static/css/home.css`,

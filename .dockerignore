@@ -2,11 +2,11 @@
 # Ignore everything needed to build production server.
 #
 
-.vscode/
-.github/
+/.vscode/
+/.github/
+/.mypy_cache/
 
-node_modules/
-dist/
+/node_modules/
 
 .yarn/*
 !.yarn/releases
@@ -15,3 +15,6 @@ dist/
 
 **/*.png
 **/*.pyc
+
+# This will be generated on the image
+/html/

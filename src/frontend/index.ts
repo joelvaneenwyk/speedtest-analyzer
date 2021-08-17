@@ -11,6 +11,7 @@ import $ from "jquery";
 import moment from "moment";
 import { Chart, ChartDataset, ChartData, registerables } from "chart.js";
 import "chartjs-adapter-moment";
+import zoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
 import daterangepicker from "daterangepicker";
 
@@ -74,6 +75,7 @@ class ParseManager {
 
         Papa.parse(input, {
             download: download,
+
             error(error: Papa.ParseError) {
                 console.log("Failed to load data.");
 
@@ -121,6 +123,9 @@ class ParseManager {
                         parseManager.addRow(measureRow);
                     }
                 }
+            },
+            complete(results: Papa.ParseResult<string>) {
+                parseManager._chart?.update();
             }
         });
     }
@@ -173,7 +178,7 @@ class ParseManager {
             }
 
             this._chart.config.data = chartData;
-            this._chart.update();
+            //this._chart.update();
         }
     }
 
@@ -187,7 +192,7 @@ class ParseManager {
                 dataSet.data = [];
             });
 
-            this._chart.update();
+            this._chart.update(force ? "none" : "normal");
         }
 
         callback();
@@ -255,7 +260,7 @@ class AppConfig {
     daterange: daterangepicker.Options | null = null;
 }
 
-let appConfig = new AppConfig();
+export let appConfig = new AppConfig();
 
 $(function () {
     appConfig.customTitle = "Speedtest Statistics v1.4.3";
@@ -296,6 +301,7 @@ $(function () {
     }
 
     Chart.register(...registerables);
+    Chart.register(zoomPlugin);
 
     const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
     const chartContext = chartCanvas.getContext("2d");
@@ -347,6 +353,31 @@ $(function () {
                             unit: "day"
                         }
                     }
+                },
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    },
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: "x"
+                            // pan options and/or events
+                        },
+                        limits: {
+                            // axis limits
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: "x"
+                            // zoom options and/or events
+                        }
+                    }
                 }
                 //tooltips: {
                 //    mode: "index",
@@ -383,7 +414,7 @@ $(function () {
 
     $.extend(daterangeConfig, appConfig.daterange);
 
-    // init application
+    // Initialize the application
     $(function () {
         const parseManager = new ParseManager();
 
@@ -404,13 +435,13 @@ $(function () {
         }
         parseManager.parse();
 
-        const buttonStartSpeedtest = $("#startSpeedtest");
+        const buttonStartSpeedtest = $("#button-start-speedtest");
         buttonStartSpeedtest.on("click", function () {
             const buttonHelper = new ButtonHelper(buttonStartSpeedtest);
 
             buttonHelper.loading();
 
-            jQuery.get("/run_speedtest", function () {
+            $.get("/run_speedtest", function () {
                 buttonHelper.reset();
                 parseManager.flushChart(true, function () {
                     parseManager.parse();

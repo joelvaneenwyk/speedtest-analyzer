@@ -5,7 +5,7 @@
         "module": "commonjs",
         "declaration": false,
         "sourceMap": true,
-        "outDir": "./build",
+        "outDir": "./html",
         "tsBuildInfoFile": "./ignorable-build-cache.json",
         "removeComments": true,
         "importHelpers": true,

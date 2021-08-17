@@ -14,7 +14,7 @@ console.log(`Starting ${isProductionBuild ? "production" : "development"} enviro
 const config: Configuration = merge(
     {
         devServer: {
-            contentBase: paths.build.public.html,
+            contentBase: paths.public.html,
             hot: true,
             port: 3000
         },
@@ -55,7 +55,7 @@ const config: Configuration = merge(
         },
         output: {
             filename: "[name].js",
-            path: paths.build.root
+            path: paths.public.root
         },
         plugins: [
             new ProgressPlugin(),

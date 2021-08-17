@@ -3,9 +3,11 @@ FROM fabiocicerchia/nginx-lua:1.21.1-alpine
 LABEL author="Tobias Rös - <roes@amicaldo.de>"
 LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
 
+ARG NginxRoot=/usr/share/nginx
 ARG NginxWebRoot=/usr/share/nginx/html
 
-ENV NGINX_WEB_ROOT=${NginxWebRoot}
+ENV NGINX_ROOT=${NginxRoot}
+ENV NGINX_WEB_ROOT=${NginxRoot}/html
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 
 # Install dependencies
@@ -23,14 +25,13 @@ RUN npm install -g yarn
 RUN \
     mkdir -p /run/nginx/ \
     && mkdir -p /etc/nginx/global/ \
-    && mkdir -p ${NginxWebRoot}/ \
-    && mkdir -p ${NginxWebRoot}/logs/ \
+    && mkdir -p $NGINX_WEB_ROOT/ \
+    && mkdir -p $NGINX_WEB_ROOT/logs/ \
     && mkdir -p /etc/nginx/modules/ \
     && touch /var/log/nginx/access.log \
     && touch /var/log/nginx/error.log
 
-# Default web content goes here in newer versions of nginx
-WORKDIR ${NginxWebRoot}
+WORKDIR /usr/share/nginx/
 
 # Copy over all files
 COPY ./ ./
@@ -38,17 +39,19 @@ COPY ./ ./
 # Install dependencies
 RUN yarn workspaces focus --production
 
+RUN yarn production
+
 # Install default configuration. We use a template here which handles variable substitution for
 # us, see https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration
 RUN \
     mkdir -p $NGINX_ENVSUBST_TEMPLATE_DIR/ \
-    && cp -f "${NginxWebRoot}/nginx/default.conf.template" "$NGINX_ENVSUBST_TEMPLATE_DIR/default.conf.template" \
-    && cp -f "${NginxWebRoot}/nginx/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
+    && cp -f "./src/config/nginx/default.conf.template" "$NGINX_ENVSUBST_TEMPLATE_DIR/default.conf.template" \
+    && cp -f "./src/config/nginx/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
 
 # Update permissions so that nginx server can touch/modify files as needed
-RUN chown -R nginx:nginx ${NginxWebRoot}/
-RUN chmod a+x ${NginxWebRoot}/scripts/run.sh
-RUN chmod a+x ${NginxWebRoot}/scripts/runSpeedtest.py
+RUN chown -R nginx:nginx ./
+RUN chmod a+x ./src/server/run.sh
+RUN chmod a+x ./src/server/runSpeedtest.py
 
 RUN mkdir -p /var/cache/nginx/.local/
 RUN chown -R nginx:nginx /var/cache/nginx/
@@ -66,4 +69,4 @@ USER root
 EXPOSE 80
 EXPOSE 443
 
-ENTRYPOINT ["sh", "-c", "$NGINX_WEB_ROOT/scripts/run.sh"]
+ENTRYPOINT ["sh", "-c", "$NGINX_ROOT/src/server/run.sh"]
