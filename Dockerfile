@@ -5,19 +5,23 @@ LABEL maintainer="Joel Van Eenwyk - <joel.vaneenwyk@gmail.com>"
 
 ARG NginxRoot=/usr/share/nginx
 ARG NginxWebRoot=/usr/share/nginx/html
+ARG SSL_CERTIFICATE_ROOT="/etc/nginx/ssl"
 
 ENV NGINX_ROOT=${NginxRoot}
 ENV NGINX_WEB_ROOT=${NginxRoot}/html
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+ENV SSL_CERTIFICATE_ROOT=${SSL_CERTIFICATE_ROOT}
+ENV SSL_ROOT_NAME="speedtest_analyser"
 
 # Install dependencies
 RUN apk update && apk add \
     bash \
     git \
     nodejs \
-    npm
-
-RUN apk add python3 py3-pip
+    npm \
+    openssl \
+    python3 \
+    py3-pip
 
 RUN npm install -g yarn
 
@@ -50,8 +54,9 @@ RUN \
 
 # Update permissions so that nginx server can touch/modify files as needed
 RUN chown -R nginx:nginx ./
-RUN chmod a+x ./src/server/run.sh
+RUN chmod a+x ./src/server/*.sh
 RUN chmod a+x ./src/server/runSpeedtest.py
+RUN ./src/server/generateCertificate.sh
 
 RUN mkdir -p /var/cache/nginx/.local/
 RUN chown -R nginx:nginx /var/cache/nginx/

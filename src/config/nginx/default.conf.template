@@ -3,11 +3,11 @@
 server {
     server_name "speedtest_analyser";
 
-    listen 80;
-    listen [::]:80 ipv6only=on;
+    ssl_certificate "${SSL_CERTIFICATE_ROOT}/${SSL_ROOT_NAME}.crt";
+    ssl_certificate_key "${SSL_CERTIFICATE_ROOT}/${SSL_ROOT_NAME}.key";
 
+    listen 80;
     listen 443 ssl;
-    listen [::]:443 ssl ipv6only=on;
 
     location / {
         root   ${NGINX_WEB_ROOT};
@@ -27,7 +27,7 @@ server {
 
     location /run_speedtest {
         content_by_lua_block {
-            os.execute("python3 ${NGINX_WEB_ROOT}/src/server/runSpeedtest.py")
+            os.execute("python3 ${NGINX_ROOT}/src/server/runSpeedtest.py")
         }
     }
 }
