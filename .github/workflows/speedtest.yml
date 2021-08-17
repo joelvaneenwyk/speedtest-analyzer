@@ -1,10 +1,9 @@
-name: Validate Speedtest Analyser
+name: Speedtest Analyzer
 
 on:
   push:
     branches:
       - "main"
-      - "develop"
     tags:
       - "v*"
 

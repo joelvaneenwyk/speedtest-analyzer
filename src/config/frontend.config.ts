@@ -34,7 +34,7 @@ const frontend: Configuration = {
             chunks: ["static/js/app"],
             hash: true,
             meta: {
-                description: "Docker Speedtest Analyser Frontend"
+                description: "Speedtest Analyzer"
             },
             favicon: root("src/frontend", "favicon.ico"),
             inject: true,
