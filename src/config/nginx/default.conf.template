@@ -1,0 +1,33 @@
+# HTTP server
+#
+server {
+    server_name "speedtest_analyser";
+
+    listen 80;
+    listen [::]:80 ipv6only=on;
+
+    listen 443 ssl;
+    listen [::]:443 ssl ipv6only=on;
+
+    location / {
+        root   ${NGINX_WEB_ROOT};
+        index  index.html index.htm;
+    }
+
+    #fastcgi_cache start
+    set $no_cache 0;
+
+    # POST requests and urls with a query string should always go to PHP
+    if ($request_method = POST) {
+        set $no_cache 1;
+    }
+    if ($query_string != "") {
+        set $no_cache 1;
+    }
+
+    location /run_speedtest {
+        content_by_lua_block {
+            os.execute("python3 ${NGINX_WEB_ROOT}/src/server/runSpeedtest.py")
+        }
+    }
+}
