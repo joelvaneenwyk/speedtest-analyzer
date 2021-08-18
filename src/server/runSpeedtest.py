@@ -14,13 +14,11 @@ import csv
 import os
 import sys
 import time
+import argparse
 import traceback
-from typing import Optional
+from typing import Optional, List
 
 from speedtest import Speedtest
-
-CSV_FIELDNAMES = ["timestamp", "ping", "download", "upload"]
-FILEPATH = "%s/../../html/data/result.csv" % os.path.dirname(os.path.abspath(__file__))
 
 
 def findPythonExecutable() -> Optional[str]:
@@ -37,9 +35,14 @@ def findPythonExecutable() -> Optional[str]:
     """
 
     pythonExecutable = None
-    options = ["/usr/bin/", "/usr/local/bin/", os.path.expanduser("~/local/bin"), "/bin/"]
+    options = [
+        "/usr/bin/",
+        "/usr/local/bin/",
+        os.path.expanduser("~/local/bin"),
+        "/bin/",
+    ]
 
-    executables = []
+    executables = [sys.executable]
     for option in options:
         for variant in ["python3.10", "python3.9", "python3.8", "python3", "python"]:
             executables.append(os.path.join(option, variant))
@@ -63,54 +66,74 @@ def runSpeedtest() -> int:
 
     # Execute speedtest
     try:
-        if not sys.executable:
-            executable = findPythonExecutable()
+        csvFieldNames = ["timestamp", "ping", "download", "upload"]
+        dataRoot = os.path.abspath(
+            "%s/../../html/data/" % os.path.dirname(os.path.abspath(__file__))
+        )
+        outputFilePath = os.path.join(dataRoot, "result.csv")
+        os.makedirs(dataRoot, exist_ok=True)
 
+        executable = findPythonExecutable()
+
+        if not sys.executable:
             if not executable:
                 print("ERROR: Failed to find Python executable.")
             else:
                 sys.executable = executable
-
-            print("Overrode system Python executable: '%s'" % sys.executable)
+                print("Overrode system Python executable: '%s'" % sys.executable)
         else:
             print("System Python executable: '%s'" % sys.executable)
 
+        parser = argparse.ArgumentParser(description="Run speedtest.")
+        parser.add_argument(
+            "--initialize",
+            dest="initialize",
+            action="store_true",
+            help="Whether to initialize output file.",
+        )
+        args = parser.parse_args()
+
+        csv_data_dict = {}
+        ping = 0
+        download = 0
+        upload = 0
+        timestamp = round(time.time(), 3)
+
         test = Speedtest()
-        test.get_servers(None)
-        test.get_best_server()
-        test.download(threads=None)
-        test.upload(threads=None, pre_allocate=False)
 
-        result = test.results.dict()
+        if not args.initialize:
+            test.get_servers(None)
+            test.get_best_server()
+            test.download(threads=None)
+            test.upload(threads=None, pre_allocate=False)
 
-        # collect speedtest data
-        ping = round(result["ping"], 2)
-        download = round(result["download"] / 1000 / 1000, 2)
-        upload = round(result["upload"] / 1000 / 1000, 2)
-        timestamp = round(time.time() * 1000, 3)
+            result = test.results.dict()
 
-        csv_data_dict = {
-            CSV_FIELDNAMES[0]: timestamp,
-            CSV_FIELDNAMES[1]: ping,
-            CSV_FIELDNAMES[2]: download,
-            CSV_FIELDNAMES[3]: upload,
-        }
+            # collect speedtest data
+            ping = round(result["ping"], 2)
+            download = round(result["download"] / 1000 / 1000, 2)
+            upload = round(result["upload"] / 1000 / 1000, 2)
 
-        # Write testdata to file
-        isFileEmpty = not os.path.isfile(FILEPATH) or os.stat(FILEPATH).st_size == 0
+            csv_data_dict = {
+                csvFieldNames[0]: timestamp,
+                csvFieldNames[1]: ping,
+                csvFieldNames[2]: download,
+                csvFieldNames[3]: upload,
+            }
 
-        with open(FILEPATH, "a") as outputFileStream:
+        with open(outputFilePath, "a") as outputFileStream:
             csv_writer = csv.DictWriter(
                 outputFileStream,
                 delimiter=",",
                 lineterminator="\n",
-                fieldnames=CSV_FIELDNAMES,
+                fieldnames=csvFieldNames,
             )
 
-            if isFileEmpty:
+            if outputFileStream.tell() == 0:
                 csv_writer.writeheader()
 
-            csv_writer.writerow(csv_data_dict)
+            if csv_data_dict:
+                csv_writer.writerow(csv_data_dict)
 
         # Print results from test run
         print("--- Result ---")
