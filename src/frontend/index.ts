@@ -51,6 +51,10 @@ class MeasureRow {
     upload: number = 0;
     time: moment.Moment = moment();
 
+    isValid(): boolean {
+        return this.time.isValid() && this.timestamp >= 0 && (this.ping > 0 || this.download > 0 || this.upload > 0);
+    }
+
     constructor(header: string[], data: string[]) {
         for (let i = 0; i < data.length; i += 1) {
             const dataName = header[i];
@@ -71,10 +75,12 @@ class MeasureRow {
 
 class ParseManager {
     header: string[] = [];
+    data: { [key: number]: MeasureRow } = {};
+    newData: { [key: number]: MeasureRow } = {};
     _startDate: moment.Moment | undefined = undefined;
     _endDate: moment.Moment | undefined = undefined;
     _chart: Chart | null = null;
-    i: number = 0;
+    rowCount: number = 0;
     uploadCount: number = 0;
     downloadCount: number = 0;
 
@@ -82,7 +88,7 @@ class ParseManager {
      * parse result.csv and create graph with _startDate and _endDate filter
      */
     parse(input: string = "data/result.csv", download: boolean = true) {
-        this.i = 0;
+        this.rowCount = 0;
 
         let parseManager = this;
 
@@ -117,53 +123,71 @@ class ParseManager {
                 parseManager.parse(csvData, false);
             },
             step(row: Papa.ParseResult<string>) {
-                parseManager.i += 1;
+                parseManager.rowCount += 1;
 
-                const dataArr: string[] = row.data;
-
-                if (!parseManager.header || parseManager.i === 1) {
-                    parseManager.header = dataArr;
+                if (parseManager.header.length == 0) {
+                    parseManager.header = row.data;
                 } else {
-                    // Build csv array
-                    const measureRow: MeasureRow = new MeasureRow(parseManager.header, dataArr);
-
-                    console.log(`${measureRow.timestamp.toString()} ${measureRow.time.toString()}`);
-                    if (
-                        parseManager._startDate == undefined ||
-                        parseManager._endDate == undefined ||
-                        (measureRow.time.isAfter(parseManager._startDate) && measureRow.time.isBefore(parseManager._endDate))
-                    ) {
-                        parseManager.addRow(measureRow);
-                    }
+                    parseManager.addDataRow(new MeasureRow(parseManager.header, row.data));
                 }
             },
             complete(results: Papa.ParseResult<string>) {
-                parseManager._chart?.update();
+                parseManager.flush();
             }
         });
     }
 
-    /**
-     * add a row to chart
-     *
-     * @param measureRow
-     */
-    addRow(measureRow: MeasureRow) {
-        if (this._chart != null && this._chart.config.data.labels !== undefined) {
-            const chartData = this._chart.config.data;
-            const dataSets = chartData.datasets as ChartDataset<"line">[];
+    flush() {
+        this.addDataRows(this.newData);
+        for (let key in this.newData) {
+            this.data[key] = this.newData[key];
+        }
+        this.newData = {};
+    }
 
-            this._chart.config.data.labels.push(measureRow.time);
-
-            if (measureRow.upload > measureRow.download) {
-                this.uploadCount += 1;
-            } else {
-                this.downloadCount += 1;
+    addDataRow(measureRow: MeasureRow) {
+        if (measureRow.isValid()) {
+            this.newData[measureRow.timestamp] = measureRow;
+            if (Object.keys(this.newData).length > 1000) {
+                this.flush();
             }
+        }
+    }
 
-            dataSets[0].data.push(measureRow.ping);
-            dataSets[1].data.push(measureRow.upload);
-            dataSets[2].data.push(measureRow.download);
+    addDataRows(measureRows: { [key: number]: MeasureRow }) {
+        if (this._chart != null && this._chart.data.labels !== undefined) {
+            const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
+
+            [0, 1, 2].forEach((index) => {
+                if (dataSets[index].data == undefined) {
+                    dataSets[index].data = [];
+                }
+            });
+
+            for (let timestamp in measureRows) {
+                let measureRow = measureRows[timestamp];
+
+                const useRowData = true;
+
+                //let useRowData: boolean = this._startDate == undefined || this._endDate == undefined;
+                //useRowData ||= measureRow.time.isAfter(this._startDate) && measureRow.time.isBefore(this._endDate);
+
+                if (useRowData) {
+                    if (measureRow.upload > measureRow.download) {
+                        this.uploadCount += 1;
+                    } else {
+                        this.downloadCount += 1;
+                    }
+
+                    this._chart.data.labels.push(measureRow.time);
+
+                    dataSets[0].data.push(measureRow.ping);
+                    dataSets[1].data.push(measureRow.upload);
+                    dataSets[2].data.push(measureRow.download);
+                } else {
+                    console.log(`Skipped row: ${measureRow.timestamp.toString()} ${measureRow.time.toString()}`);
+                }
+            }
 
             /**
              * Graph has to be filled dynamically whether upload or download is higher.
@@ -190,8 +214,7 @@ class ParseManager {
                 dataSets[2].fill = true;
             }
 
-            this._chart.config.data = chartData;
-            //this._chart.update();
+            this._chart.update();
         }
     }
 
@@ -205,7 +228,7 @@ class ParseManager {
                 dataSet.data = [];
             });
 
-            this._chart.update(force ? "none" : "normal");
+            this._chart.update();
         }
 
         callback();
@@ -265,44 +288,48 @@ class AppConfigLabels {
 }
 
 class AppConfig {
-    customTitle: string = "";
+    customTitle: string;
     dateFormat: string = "YYYY.MM.DD";
     locale: string = "en";
     labels: AppConfigLabels = new AppConfigLabels();
     _chart: Chart | null = null;
-    daterange: daterangepicker.Options | null = null;
+    daterange: daterangepicker.Options;
+
+    constructor() {
+        this.customTitle = "Speedtest Statistics v1.4.3";
+        this.daterange = {
+            timePicker: true,
+            timePicker24Hour: true,
+            startDate: moment().subtract(1, "month"),
+            endDate: moment().endOf("day"),
+            ranges: {
+                Today: [moment().hours(0).minutes(0).seconds(0), moment().hours(23).minutes(59).seconds(59)],
+                Yesterday: [
+                    moment().hours(0).minutes(0).seconds(0).subtract(1, "days"),
+                    moment().hours(23).minutes(59).seconds(59).subtract(1, "days")
+                ],
+                "Last 7 Days": [moment().subtract(6, "days"), moment()],
+                "Last 30 Days": [moment().subtract(29, "days"), moment()],
+                "This Month": [moment().startOf("month"), moment().endOf("month")],
+                "Last Month": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")]
+            }
+        };
+
+        $(function () {
+            $.getScript("data/config.js")
+                .done(function (script: any, textStatus: any) {
+                    console.log(`Loaded custom configuration. Status: '${textStatus}'`);
+                })
+                .fail(function () {
+                    console.log("No custom configuration available."); // 200
+                });
+        });
+    }
 }
 
 export let appConfig = new AppConfig();
 
 $(function () {
-    appConfig.customTitle = "Speedtest Statistics v1.4.3";
-    appConfig.daterange = {
-        timePicker: true,
-        timePicker24Hour: true,
-        startDate: moment().subtract(1, "month"),
-        endDate: moment().endOf("day"),
-        ranges: {
-            Today: [moment().hours(0).minutes(0).seconds(0), moment().hours(23).minutes(59).seconds(59)],
-            Yesterday: [
-                moment().hours(0).minutes(0).seconds(0).subtract(1, "days"),
-                moment().hours(23).minutes(59).seconds(59).subtract(1, "days")
-            ],
-            "Last 7 Days": [moment().subtract(6, "days"), moment()],
-            "Last 30 Days": [moment().subtract(29, "days"), moment()],
-            "This Month": [moment().startOf("month"), moment().endOf("month")],
-            "Last Month": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")]
-        }
-    };
-
-    $.getScript("data/config.js")
-        .done(function (script: any, textStatus: any) {
-            console.log(`Loaded custom configuration. Status: '${textStatus}'`);
-        })
-        .fail(function () {
-            console.log("No custom configuration available."); // 200
-        });
-
     const colors = {
         orange: "rgba(255,190,142,0.5)",
         black: "rgba(90,90,90,1)",
@@ -316,10 +343,28 @@ $(function () {
     Chart.register(...registerables);
     Chart.register(zoomPlugin);
 
-    const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
-    const chartContext = chartCanvas.getContext("2d");
+    const parseManager = new ParseManager();
+
+    const daterangeConfig: daterangepicker.Options = {
+        locale: {
+            format: appConfig.dateFormat
+        },
+        autoApply: true,
+        opens: "left"
+    };
+    $.extend(daterangeConfig, appConfig.daterange);
+
+    const dateRange = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
+        start: moment.Moment,
+        end: moment.Moment
+    ) {
+        parseManager.update(start, end);
+    });
+
     let chartJS: Chart | null = null;
 
+    const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
+    const chartContext = chartCanvas.getContext("2d");
     if (chartContext != null) {
         chartJS = new Chart(chartContext, {
             type: "line",
@@ -331,7 +376,8 @@ $(function () {
                         fill: false,
                         backgroundColor: colors.black,
                         borderColor: colors.black,
-                        tension: 0
+                        tension: 0,
+                        data: []
                     },
                     {
                         label: appConfig.labels.upload,
@@ -339,7 +385,8 @@ $(function () {
                         fill: false,
                         backgroundColor: colors.green,
                         borderColor: colors.green,
-                        tension: 0
+                        tension: 0,
+                        data: []
                     },
                     {
                         label: appConfig.labels.download,
@@ -347,7 +394,8 @@ $(function () {
                         fill: true,
                         backgroundColor: colors.orange,
                         borderColor: colors.orange,
-                        tension: 0
+                        tension: 0,
+                        data: []
                     }
                 ] as ChartDataset<"line">[]
             } as ChartData<"line">,
@@ -361,9 +409,17 @@ $(function () {
                 scales: {
                     x: {
                         display: true,
-                        type: "time",
+                        type: "timeseries",
+                        axis: "x",
+                        ticks: {
+                            source: "labels"
+                        },
+                        bounds: "ticks",
                         time: {
-                            unit: "day"
+                            unit: "day",
+                            displayFormats: {
+                                day: "YYYY.MM.DD"
+                            }
                         }
                     }
                 },
@@ -374,21 +430,16 @@ $(function () {
                     zoom: {
                         pan: {
                             enabled: true,
-                            mode: "x"
-                            // pan options and/or events
-                        },
-                        limits: {
-                            // axis limits
+                            mode: "xy"
                         },
                         zoom: {
                             wheel: {
-                                enabled: true
+                                enabled: false
                             },
                             pinch: {
                                 enabled: true
                             },
                             mode: "x"
-                            // zoom options and/or events
                         }
                     }
                 }
@@ -417,47 +468,25 @@ $(function () {
         });
     }
 
-    const daterangeConfig: daterangepicker.Options = {
-        locale: {
-            format: appConfig.dateFormat
-        },
-        autoApply: true,
-        opens: "left"
-    };
+    parseManager.setChart(chartJS);
 
-    $.extend(daterangeConfig, appConfig.daterange);
+    moment.locale(appConfig.locale);
 
-    // Initialize the application
-    $(function () {
-        const parseManager = new ParseManager();
+    if (appConfig.daterange != null && appConfig.daterange.startDate && appConfig.daterange.endDate) {
+        parseManager.setStartDate(appConfig.daterange.startDate);
+        parseManager.setEndDate(appConfig.daterange.endDate);
+    }
+    parseManager.parse();
 
-        parseManager.setChart(chartJS);
+    const buttonStartSpeedtest = new ButtonStartSpeedtest("#button-start-speedtest");
 
-        const dateRange = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
-            start: moment.Moment,
-            end: moment.Moment
-        ) {
-            parseManager.update(start, end);
-        });
-
-        moment.locale(appConfig.locale);
-
-        if (appConfig.daterange != null && appConfig.daterange.startDate && appConfig.daterange.endDate) {
-            parseManager.setStartDate(appConfig.daterange.startDate);
-            parseManager.setEndDate(appConfig.daterange.endDate);
-        }
-        parseManager.parse();
-
-        const buttonStartSpeedtest = new ButtonStartSpeedtest("#button-start-speedtest");
-
-        buttonStartSpeedtest.onClick(() => {
-            console.log("Issued speedtest request.");
-            $.get("/run_speedtest", function (data, status) {
-                buttonStartSpeedtest.done();
-                console.log(`Response: '${data}' '${status}'`);
-                parseManager.flushChart(true, function () {
-                    parseManager.parse();
-                });
+    buttonStartSpeedtest.onClick(() => {
+        console.log("Issued speedtest request.");
+        $.get("/run_speedtest", function (data, status) {
+            buttonStartSpeedtest.done();
+            console.log(`Response: '${data}' '${status}'`);
+            parseManager.flushChart(true, function () {
+                parseManager.parse();
             });
         });
     });

@@ -3,13 +3,68 @@ import TsCheckerPlugin from "fork-ts-checker-webpack-plugin";
 import { cpus } from "os";
 import { Configuration, ProgressPlugin } from "webpack";
 import merge from "webpack-merge";
-import frontend from "./frontend.config";
 import isProductionBuild from "./util/env";
-import { paths } from "./util/paths";
+import { paths, root } from "./util/paths";
+import HtmlPlugin from "html-webpack-plugin";
+import CssPlugin from "mini-css-extract-plugin";
 
 const PnpPlugin = require("pnp-webpack-plugin");
 
 console.log(`Starting ${isProductionBuild ? "production" : "development"} environment...`);
+
+const frontend: Configuration = {
+    entry: {
+        "static/js/app": paths.source.frontend.app
+    },
+
+    resolve: {
+        extensions: [".scss", ".tsx", ".ts", ".js"],
+        plugins: [PnpPlugin]
+    },
+    resolveLoader: {
+        plugins: [PnpPlugin.moduleLoader(module)]
+    },
+
+    module: {
+        rules: [
+            {
+                test: /\.scss$/,
+                use: [CssPlugin.loader, "css-loader", "sass-loader"]
+            }
+        ]
+    },
+
+    plugins: [
+        new HtmlPlugin({
+            chunks: ["static/js/app"],
+            hash: true,
+            meta: {
+                description: "Speedtest Analyzer"
+            },
+            favicon: root("src/frontend", "favicon.ico"),
+            inject: true,
+            filename: "index.html",
+            minify: {
+                removeComments: isProductionBuild,
+                collapseWhitespace: true,
+                removeRedundantAttributes: true,
+                useShortDoctype: true,
+                removeEmptyAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                keepClosingSlash: true,
+                minifyJS: isProductionBuild,
+                minifyCSS: isProductionBuild,
+                minifyURLs: isProductionBuild
+            },
+            scriptLoading: "blocking",
+            template: paths.source.frontend.template
+        }),
+        new CssPlugin({
+            filename: `static/css/home.css`,
+            chunkFilename: `static/css/home.chunk.css`
+        })
+    ]
+};
 
 const config: Configuration = merge(
     {
