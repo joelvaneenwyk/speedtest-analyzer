@@ -2,20 +2,19 @@
 
 echo "[run.sh] Initializing system."
 
-_script="${BASH_SOURCE[0]}"
-_script_path="$(realpath "$_script")"
-_script_home="$(cd "$(dirname "$_script_path")" &>/dev/null && cd ../ && pwd)"
-echo "Speedtest root: '$_script_home'"
+_speedtest_root="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" &>/dev/null && cd ../../ && pwd)"
+echo "Speedtest root: '$_speedtest_root'"
 echo "NGINX web root: '$NGINX_WEB_ROOT'"
 
 # Create a default configuration override if one does not exist
-if [ ! -f "$_script_home/html/data/config.js" ]; then
-    cp -f "$_script_home/src/config/config.template.js" "$_script_home/html/data/config.js"
+if [ ! -f "$_speedtest_root/html/data/config.js" ]; then
+    mkdir -p "$_speedtest_root/html/data"
+    cp "$_speedtest_root/src/config/config.template.js" "$_speedtest_root/html/data/config.js"
 fi
 
 _crontab="$HOME/.config/crontab"
 mkdir -p "$(dirname "$_crontab")"
-echo "${CRONJOB_ITERATION:-15} * * * * $_script_home/scripts/runSpeedtest.py>/dev/stdout 2>&1" >"$_crontab"
+echo "${CRONJOB_ITERATION:-15} * * * * $_speedtest_root/src/server/runSpeedtest.sh>/dev/stdout 2>&1" >"$_crontab"
 crontab "$_crontab"
 
 echo "Starting Cronjob..."

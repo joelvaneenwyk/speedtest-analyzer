@@ -37,11 +37,11 @@ def findPythonExecutable() -> Optional[str]:
     """
 
     pythonExecutable = None
-    options = ["/usr/local/bin/", os.path.expanduser("~/local/bin"), "/bin/"]
+    options = ["/usr/bin/", "/usr/local/bin/", os.path.expanduser("~/local/bin"), "/bin/"]
 
     executables = []
     for option in options:
-        for variant in ["python3.9", "python3", "python"]:
+        for variant in ["python3.10", "python3.9", "python3.8", "python3", "python"]:
             executables.append(os.path.join(option, variant))
 
     for executable in executables:

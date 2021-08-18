@@ -25,6 +25,13 @@ RUN apk update && apk add \
 
 RUN npm install -g yarn
 
+# Clone and install latest speedtest
+RUN \
+    mkdir -p "/var/cache/nginx/.local/" \
+    && git clone https://github.com/sivel/speedtest-cli.git "/var/cache/nginx/.local/speedtest-cli"
+
+RUN python3 -m pip install /var/cache/nginx/.local/speedtest-cli/
+
 # Create directory structure and required files if they do not exist
 RUN \
     mkdir -p /run/nginx/ \
@@ -62,14 +69,6 @@ RUN mkdir -p /var/cache/nginx/.local/
 RUN chown -R nginx:nginx /var/cache/nginx/
 RUN find /var/cache/nginx/ -type d -exec chmod 755 '{}' ';'
 RUN find /var/cache/nginx/ -type f -exec chmod 644 '{}' ';'
-
-USER nginx
-
-# Clone and install latest speedtest
-RUN git clone https://github.com/sivel/speedtest-cli.git "/var/cache/nginx/.local/speedtest-cli"
-RUN python3 -m pip install --user /var/cache/nginx/.local/speedtest-cli/
-
-USER root
 
 EXPOSE 80
 EXPOSE 443
