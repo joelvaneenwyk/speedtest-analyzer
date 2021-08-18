@@ -14,20 +14,26 @@ server {
         index  index.html index.htm;
     }
 
-    #fastcgi_cache start
     set $no_cache 0;
 
-    # POST requests and urls with a query string should always go to PHP
     if ($request_method = POST) {
         set $no_cache 1;
     }
+
     if ($query_string != "") {
         set $no_cache 1;
     }
 
     location /run_speedtest {
         content_by_lua_block {
-            os.execute("bash ${NGINX_ROOT}/src/server/runSpeedtest.sh")
+            local command = "bash ${NGINX_ROOT}/src/server/runSpeedtest.sh"
+            ngx.log(ngx.INFO, string.format("Initiated speedtest run: '%s'", command))
+
+            local process = assert(io.popen(command, "r"))
+            local output, err = process:read("*all")
+            process:close()
+
+            ngx.say(data)
         }
     }
 }
