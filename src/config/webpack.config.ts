@@ -60,20 +60,20 @@ const config: Configuration = merge(
         plugins: [
             new ProgressPlugin(),
             new TsCheckerPlugin({
-                async: !isProductionBuild
-
-                // typescript?: TypeScriptReporterOptions;
-                // eslint?: EsLintReporterOptions;
-                // formatter?: FormatterOptions;
-                // issue?: IssueOptions;
-                // logger?: LoggerOptions;
-
-                // checkSyntacticErrors: true,
-                // silent: true,
-                // tsconfig: paths.config.tsconfig,
-                // useTypescriptIncrementalApi: true
+                async: !isProductionBuild,
+                typescript: {
+                    diagnosticOptions: {
+                        semantic: true,
+                        syntactic: true
+                    },
+                    configFile: paths.config.tsconfig
+                }
             }),
-            new CleanPlugin({ verbose: !isProductionBuild })
+            new CleanPlugin({
+                verbose: true,
+                cleanStaleWebpackAssets: false,
+                cleanOnceBeforeBuildPatterns: [`${paths.public.root}/*.*`, `${paths.public.root}/static/**/*`]
+            })
         ],
         resolve: {
             extensions: [".tsx", ".ts", ".js"],

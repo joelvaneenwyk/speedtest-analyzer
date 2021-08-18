@@ -6,6 +6,8 @@ _speedtest_root="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" &>/dev/null
 echo "Speedtest root: '$_speedtest_root'"
 echo "NGINX web root: '$NGINX_WEB_ROOT'"
 
+python3 "$_speedtest_root/src/server/runSpeedtest.py" --initialize
+
 # Create a default configuration override if one does not exist
 if [ ! -f "$_speedtest_root/html/data/config.js" ]; then
     mkdir -p "$_speedtest_root/html/data"
@@ -22,7 +24,4 @@ crond -l 2 -f &
 
 echo "Starting nginx..."
 
-/docker-entrypoint.sh nginx -g "daemon off;"
-
-echo "Speedtest has started and server is running."
-exit 0
+/docker-entrypoint.sh nginx -g "daemon off;" "$@"

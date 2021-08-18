@@ -63,6 +63,15 @@
     "liveServer.settings.root": "/html",
     "liveServer.settings.port": 14400,
 
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.profiles.windows": {
+        "Command Prompt": {
+            "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
+            "args": ["/D"],
+            "icon": "terminal-cmd"
+        }
+    },
+
     "files.associations": {
         "tsconfig.json": "jsonc",
         ".eslintrc.json": "jsonc",

@@ -25,12 +25,8 @@ RUN apk update && apk add \
 
 RUN npm install -g yarn
 
-# Clone and install latest speedtest
-RUN \
-    mkdir -p "/var/cache/nginx/.local/" \
-    && git clone https://github.com/sivel/speedtest-cli.git "/var/cache/nginx/.local/speedtest-cli"
-
-RUN python3 -m pip install /var/cache/nginx/.local/speedtest-cli/
+# This is the utility we use for testing connection speed
+RUN python3 -m pip install speedtest-cli
 
 # Create directory structure and required files if they do not exist
 RUN \
@@ -60,15 +56,15 @@ RUN \
     && cp -f "./src/config/nginx/nginxEnv.conf" "/etc/nginx/modules/nginxEnv.conf"
 
 # Update permissions so that nginx server can touch/modify files as needed
-RUN chown -R nginx:nginx ./
-RUN chmod a+x ./src/server/*.sh
-RUN chmod a+x ./src/server/runSpeedtest.py
+RUN \
+    chown -R nginx:nginx ./ \
+    && chmod a+x ./src/server/*.sh \
+    && chmod a+x ./src/server/runSpeedtest.py
+
+# Create self-signed SSL certificates
 RUN ./src/server/generateCertificate.sh
 
-RUN mkdir -p /var/cache/nginx/.local/
-RUN chown -R nginx:nginx /var/cache/nginx/
-RUN find /var/cache/nginx/ -type d -exec chmod 755 '{}' ';'
-RUN find /var/cache/nginx/ -type f -exec chmod 644 '{}' ';'
+RUN rm -rf ./mypy_cache && rm -rf ./yarn
 
 EXPOSE 80
 EXPOSE 443

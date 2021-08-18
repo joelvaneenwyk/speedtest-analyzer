@@ -15,19 +15,32 @@ import zoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
 import daterangepicker from "daterangepicker";
 
-class ButtonHelper {
+class ButtonStartSpeedtest {
     button: JQuery<HTMLElement>;
 
-    constructor(element: JQuery<HTMLElement>) {
-        this.button = element;
+    constructor(buttonId: string) {
+        this.button = $(buttonId);
+    }
+
+    onClick(callback: { (): void }) {
+        const _button = this;
+
+        this.button.on("click", () => {
+            _button.loading();
+            callback();
+        });
+    }
+
+    done() {
+        this.reset();
     }
 
     loading() {
-        $(this.button).html($.data(this.button, "loading-text"));
+        this.button.html($.data(this.button, "loading-text"));
     }
 
     reset() {
-        $(this.button).html($.data(this.button, "original-text"));
+        this.button.html($.data(this.button, "original-text"));
     }
 }
 
@@ -44,7 +57,7 @@ class MeasureRow {
             if (dataName == "timestamp") {
                 // from save ms timestamp
                 this.timestamp = parseInt(data[i]);
-                this.time = moment(this.timestamp, "X");
+                this.time = moment(this.timestamp / 1000.0, "X");
             } else if (dataName == "ping") {
                 this.ping = parseFloat(data[i]);
             } else if (dataName == "download") {
@@ -435,14 +448,13 @@ $(function () {
         }
         parseManager.parse();
 
-        const buttonStartSpeedtest = $("#button-start-speedtest");
-        buttonStartSpeedtest.on("click", function () {
-            const buttonHelper = new ButtonHelper(buttonStartSpeedtest);
+        const buttonStartSpeedtest = new ButtonStartSpeedtest("#button-start-speedtest");
 
-            buttonHelper.loading();
-
-            $.get("/run_speedtest", function () {
-                buttonHelper.reset();
+        buttonStartSpeedtest.onClick(() => {
+            console.log("Issued speedtest request.");
+            $.get("/run_speedtest", function (data, status) {
+                buttonStartSpeedtest.done();
+                console.log(`Response: '${data}' '${status}'`);
                 parseManager.flushChart(true, function () {
                     parseManager.parse();
                 });
