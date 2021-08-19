@@ -131,6 +131,7 @@
         "speedtest",
         "speedtests",
         "submodules",
+        "timeseries",
         "yarnpkg"
     ]
 }

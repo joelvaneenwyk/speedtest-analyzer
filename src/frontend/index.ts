@@ -9,7 +9,7 @@ import "./scss/home.scss";
 // You can specify which plugins you need
 import $ from "jquery";
 import moment from "moment";
-import { Chart, ChartDataset, ChartData, registerables } from "chart.js";
+import { Chart, ChartDataset, ChartData, registerables, ChartConfiguration } from "chart.js";
 import "chartjs-adapter-moment";
 import zoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
@@ -104,23 +104,21 @@ class ParseManager {
                 // 1622004114406.986,22.48,85.9,2.29
                 // 1622005257000.246,24.42,78.7,1.90
 
-                let today: moment.Moment = moment();
-                let time = moment().subtract(20, "d");
-                let csvData: string = "timestamp,ping,download,upload\n";
-
-                while (time.isBefore(today)) {
-                    let timestamp = moment(time)
-                        .add(Math.random() * 60 * 12, "m")
-                        .unix();
-                    let ping = Math.random() * 50 + 10;
-                    let download = Math.random() * 500 + 10;
-                    let upload = Math.random() * 30 + 10;
-                    csvData += `${timestamp.toString()},${ping},${download},${upload}\n`;
-                    time = time.add(1, "d");
-                }
-
-                console.log(csvData);
-                parseManager.parse(csvData, false);
+                //let today: moment.Moment = moment();
+                //let time = moment().subtract(20, "d");
+                //let csvData: string = "timestamp,ping,download,upload\n";
+                //while (time.isBefore(today)) {
+                //    let timestamp = moment(time)
+                //        .add(Math.random() * 60 * 12, "m")
+                //        .unix();
+                //    let ping = Math.random() * 50 + 10;
+                //    let download = Math.random() * 500 + 10;
+                //    let upload = Math.random() * 30 + 10;
+                //    csvData += `${timestamp.toString()},${ping},${download},${upload}\n`;
+                //    time = time.add(1, "d");
+                //}
+                //console.log(csvData);
+                //parseManager.parse(csvData, false);
             },
             step(row: Papa.ParseResult<string>) {
                 parseManager.rowCount += 1;
@@ -179,7 +177,7 @@ class ParseManager {
                         this.downloadCount += 1;
                     }
 
-                    this._chart.data.labels.push(measureRow.time);
+                    this._chart.data.labels.push(measureRow.time.format("YYYY-MM-DD"));
 
                     dataSets[0].data.push(measureRow.ping);
                     dataSets[1].data.push(measureRow.upload);
@@ -366,40 +364,47 @@ $(function () {
     const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
     const chartContext = chartCanvas.getContext("2d");
     if (chartContext != null) {
-        chartJS = new Chart(chartContext, {
+        let data = {
+            labels: [],
+            datasets: [
+                {
+                    label: appConfig.labels.ping,
+                    fill: false,
+                    backgroundColor: colors.black,
+                    borderColor: colors.black,
+                    tension: 0,
+                    data: [],
+                    yAxisID: "yAxis"
+                },
+                {
+                    label: appConfig.labels.upload,
+                    //isMB: true,
+                    fill: false,
+                    backgroundColor: colors.green,
+                    borderColor: colors.green,
+                    tension: 0,
+                    data: [],
+                    yAxisID: "yAxis"
+                },
+                {
+                    label: appConfig.labels.download,
+                    //isMB: true,
+                    fill: true,
+                    backgroundColor: colors.orange,
+                    borderColor: colors.orange,
+                    tension: 0,
+                    data: [],
+                    yAxisID: "yAxis"
+                }
+            ] as ChartDataset<"line">[]
+        } as ChartData<"line">;
+
+        let config = {
             type: "line",
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: appConfig.labels.ping,
-                        fill: false,
-                        backgroundColor: colors.black,
-                        borderColor: colors.black,
-                        tension: 0,
-                        data: []
-                    },
-                    {
-                        label: appConfig.labels.upload,
-                        //isMB: true,
-                        fill: false,
-                        backgroundColor: colors.green,
-                        borderColor: colors.green,
-                        tension: 0,
-                        data: []
-                    },
-                    {
-                        label: appConfig.labels.download,
-                        //isMB: true,
-                        fill: true,
-                        backgroundColor: colors.orange,
-                        borderColor: colors.orange,
-                        tension: 0,
-                        data: []
-                    }
-                ] as ChartDataset<"line">[]
-            } as ChartData<"line">,
+            data: data,
             options: {
+                //spanGaps: 1000 * 60 * 60 * 24 * 2, // 2 days
+                normalized: true,
                 responsive: true,
                 maintainAspectRatio: false,
                 hover: {
@@ -407,20 +412,27 @@ $(function () {
                     intersect: true
                 },
                 scales: {
-                    x: {
+                    xAxis: {
+                        timeseries: {
+                            tooltipFormat: "YYYY-MM-DD",
+                            unit: "day",
+                            displayFormats: {
+                                day: "YYYY-MM-DD",
+                                month: "YYYY-MM-DD",
+                                year: "YYYY"
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: "Speedtest Times"
+                        }
+                    },
+                    yAxis: {
                         display: true,
-                        type: "timeseries",
-                        axis: "x",
                         ticks: {
                             source: "labels"
                         },
-                        bounds: "ticks",
-                        time: {
-                            unit: "day",
-                            displayFormats: {
-                                day: "YYYY.MM.DD"
-                            }
-                        }
+                        axis: "y"
                     }
                 },
                 plugins: {
@@ -434,7 +446,7 @@ $(function () {
                         },
                         zoom: {
                             wheel: {
-                                enabled: false
+                                enabled: true
                             },
                             pinch: {
                                 enabled: true
@@ -465,7 +477,9 @@ $(function () {
                 //     MBits/s
                 // <%}%>`
             }
-        });
+        } as ChartConfiguration<"line">;
+
+        chartJS = new Chart(chartContext, config);
     }
 
     parseManager.setChart(chartJS);
