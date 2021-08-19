@@ -3794,14 +3794,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ]],
       ["chartjs-plugin-zoom", [
         ["npm:1.1.1", {
-          "packageLocation": "./.yarn/cache/chartjs-plugin-zoom-npm-1.1.1-de179d890a-effd03bac9.zip/node_modules/chartjs-plugin-zoom/",
+          "packageLocation": "./.yarn/unplugged/chartjs-plugin-zoom-virtual-0cdb5d33ac/node_modules/chartjs-plugin-zoom/",
           "packageDependencies": [
             ["chartjs-plugin-zoom", "npm:1.1.1"]
           ],
           "linkType": "SOFT",
         }],
         ["virtual:4e1b74a67e48c823f3ff0a7e77ce1a129c2603248a8d7352e57329fac5ebc472fbab6d7721e15318664fa8e757721546ce67a33cf9b8ebc6c4e16c9112ea56a7#npm:1.1.1", {
-          "packageLocation": "./.yarn/__virtual__/chartjs-plugin-zoom-virtual-0cdb5d33ac/0/cache/chartjs-plugin-zoom-npm-1.1.1-de179d890a-effd03bac9.zip/node_modules/chartjs-plugin-zoom/",
+          "packageLocation": "./.yarn/unplugged/chartjs-plugin-zoom-virtual-0cdb5d33ac/node_modules/chartjs-plugin-zoom/",
           "packageDependencies": [
             ["chartjs-plugin-zoom", "virtual:4e1b74a67e48c823f3ff0a7e77ce1a129c2603248a8d7352e57329fac5ebc472fbab6d7721e15318664fa8e757721546ce67a33cf9b8ebc6c4e16c9112ea56a7#npm:1.1.1"],
             ["@types/chart.js", null],

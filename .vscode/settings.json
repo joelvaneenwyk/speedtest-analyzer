@@ -1,138 +1,137 @@
 {
-    "editor.tabSize": 4,
-    "editor.codeActionsOnSave": {
-        "source.fixAll": true
-    },
-    "npm.packageManager": "yarn",
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
-    },
-    "[jsonc]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
-    },
-    "json.format.enable": false,
-    "[dockerfile]": {
-        "editor.defaultFormatter": "ms-azuretools.vscode-docker",
-        "editor.quickSuggestions": {
-            "strings": true
-        }
-    },
-    "[dockercompose]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 2,
-        "editor.autoIndent": "advanced",
-        "editor.quickSuggestions": {
-            "other": true,
-            "comments": false,
-            "strings": true
-        }
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
-    },
-    "typescript.validate.enable": true,
-    "typescript.enablePromptUseWorkspaceTsdk": true,
-    "typescript.tsdk": ".yarn/sdks/typescript/lib",
-
-    "shellcheck.enable": false,
-
-    "eslint.validate": ["javascript", "typescript"],
-    "eslint.alwaysShowStatus": true,
-    "eslint.run": "onSave",
-    "eslint.nodePath": ".yarn/sdks",
-
-    "prettier.eslintIntegration": true,
-    "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-
-    "[python]": {
-        "editor.formatOnSave": true
-    },
-    "python.formatting.provider": "black",
-    "python.linting.pylintEnabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-
-    "liveServer.settings.root": "/html",
-    "liveServer.settings.port": 14545,
-
-    "terminal.integrated.defaultProfile.windows": "Command Prompt",
-    "terminal.integrated.profiles.windows": {
-        "Command Prompt": {
-            "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
-            "args": ["/D"],
-            "icon": "terminal-cmd"
-        }
-    },
-
-    "files.associations": {
-        "tsconfig.json": "jsonc",
-        ".eslintrc.json": "jsonc",
-        "*.json.git": "jsonc",
-        "default.conf.template": "nginx"
-    },
-
-    "search.exclude": {
-        "**/.yarn": true,
-        "**/.pnp.*": true
-    },
-
-    "cSpell.ignorePaths": [
-        "**/package-lock.json",
-        "**/node_modules/**",
-        "**/vscode-extension/**",
-        "**/.git/objects/**",
-        ".vscode",
-        ".vscode-insiders",
-        ".eslintrc.json",
-        ".yarn/**",
-        "html/**",
-        "yarn.lock"
-    ],
-    "cSpell.words": [
-        "action",
-        "aleksey",
-        "bootstrap",
-        "buildx",
-        "chartjs",
-        "datepicker",
-        "daterange",
-        "daterangepicker",
-        "dockerhu",
-        "dockerhub",
-        "errno",
-        "github",
-        "joelvaneenwyk",
-        "libc",
-        "lttb",
-        "mbit",
-        "metas",
-        "os",
-        "p",
-        "papaparse",
-        "peaceiris",
-        "pnpify",
-        "popen",
-        "popperjs",
-        "qemu",
-        "qnap",
-        "registerables",
-        "rlespinasse",
-        "roest",
-        "sdks",
-        "semver",
-        "slug",
-        "speedtest",
-        "speedtests",
-        "submodules",
-        "timeseries",
-        "yarnpkg"
-    ]
+  "editor.tabSize": 4,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "npm.packageManager": "yarn",
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "json.format.enable": false,
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+    "editor.quickSuggestions": {
+      "strings": true
+    }
+  },
+  "[dockercompose]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "typescript.validate.enable": true,
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "shellcheck.enable": false,
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
+  "eslint.alwaysShowStatus": true,
+  "eslint.run": "onSave",
+  "eslint.nodePath": ".yarn/sdks",
+  "prettier.eslintIntegration": true,
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "[python]": {
+    "editor.formatOnSave": true
+  },
+  "python.formatting.provider": "black",
+  "python.linting.pylintEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "liveServer.settings.root": "/html",
+  "liveServer.settings.port": 14545,
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.profiles.windows": {
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [
+        "/D"
+      ],
+      "icon": "terminal-cmd"
+    }
+  },
+  "files.associations": {
+    "tsconfig.json": "jsonc",
+    ".eslintrc.json": "jsonc",
+    "*.json.git": "jsonc",
+    "default.conf.template": "nginx"
+  },
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "cSpell.ignorePaths": [
+    "**/package-lock.json",
+    "**/node_modules/**",
+    "**/vscode-extension/**",
+    "**/.git/objects/**",
+    ".vscode",
+    ".vscode-insiders",
+    ".eslintrc.json",
+    ".yarn/**",
+    "html/**",
+    "yarn.lock"
+  ],
+  "cSpell.words": [
+    "action",
+    "aleksey",
+    "bootstrap",
+    "buildx",
+    "chartjs",
+    "datepicker",
+    "daterange",
+    "daterangepicker",
+    "dockerhu",
+    "dockerhub",
+    "errno",
+    "github",
+    "joelvaneenwyk",
+    "libc",
+    "lttb",
+    "mbit",
+    "metas",
+    "os",
+    "p",
+    "papaparse",
+    "peaceiris",
+    "pnpify",
+    "popen",
+    "popperjs",
+    "qemu",
+    "qnap",
+    "registerables",
+    "rlespinasse",
+    "roest",
+    "sdks",
+    "semver",
+    "slug",
+    "speedtest",
+    "speedtests",
+    "submodules",
+    "timeseries",
+    "yarnpkg"
+  ]
 }

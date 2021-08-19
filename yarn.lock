@@ -8644,6 +8644,8 @@ __metadata:
       unplugged: true
     chart.js@3.5.0:
       unplugged: true
+    chartjs-plugin-zoom@1.1.1:
+      unplugged: true
   languageName: unknown
   linkType: soft
 

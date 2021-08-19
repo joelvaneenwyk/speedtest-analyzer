@@ -57,7 +57,10 @@ const frontend: Configuration = {
                 minifyURLs: isProductionBuild
             },
             scriptLoading: "blocking",
-            template: paths.source.frontend.template
+            template: paths.source.frontend.template,
+            templateParameters: {
+                version: process.env.npm_package_version
+            }
         }),
         new CssPlugin({
             filename: `static/css/home.css`,
