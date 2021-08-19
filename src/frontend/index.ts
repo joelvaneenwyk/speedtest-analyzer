@@ -9,7 +9,15 @@ import "./scss/home.scss";
 // You can specify which plugins you need
 import $ from "jquery";
 import moment from "moment";
-import { Chart, ChartDataset, ChartData, registerables, ChartConfiguration } from "chart.js";
+import {
+    Chart,
+    ChartDataset,
+    ChartData,
+    registerables,
+    ChartConfiguration,
+    ChartComponentLike,
+    ScatterDataPoint
+} from "chart.js";
 import "chartjs-adapter-moment";
 import zoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
@@ -51,46 +59,61 @@ class MeasureRow {
     upload: number = 0;
     time: moment.Moment = moment();
 
+    static _indexTimestamp: number;
+    static _indexPing: number;
+    static _indexDownload: number;
+    static _indexUpload: number;
+
     isValid(): boolean {
         return this.time.isValid() && this.timestamp >= 0 && (this.ping > 0 || this.download > 0 || this.upload > 0);
     }
 
-    constructor(header: string[], data: string[]) {
-        for (let i = 0; i < data.length; i += 1) {
+    constructor(data: string[]) {
+        this.timestamp = parseInt(data[MeasureRow._indexTimestamp]);
+        this.ping = parseFloat(data[MeasureRow._indexPing]);
+        this.download = parseFloat(data[MeasureRow._indexDownload]);
+        this.upload = parseFloat(data[MeasureRow._indexUpload]);
+
+        // Convert from unix milliseconds to date
+        this.time = moment(this.timestamp / 1000.0, "X");
+    }
+
+    static initialize(header: string[]) {
+        for (let i = 0; i < header.length; i += 1) {
             const dataName = header[i];
             if (dataName == "timestamp") {
-                // from save ms timestamp
-                this.timestamp = parseInt(data[i]);
-                this.time = moment(this.timestamp / 1000.0, "X");
+                this._indexTimestamp = i;
             } else if (dataName == "ping") {
-                this.ping = parseFloat(data[i]);
+                this._indexPing = i;
             } else if (dataName == "download") {
-                this.download = parseFloat(data[i]);
+                this._indexDownload = i;
             } else if (dataName == "upload") {
-                this.upload = parseFloat(data[i]);
+                this._indexUpload = i;
             }
         }
     }
 }
 
+type ParsedDataType = { x: number; y: number };
+
 class ParseManager {
     header: string[] = [];
-    data: { [key: number]: MeasureRow } = {};
-    newData: { [key: number]: MeasureRow } = {};
+    data: { [key: string]: MeasureRow } = {};
     _startDate: moment.Moment | undefined = undefined;
     _endDate: moment.Moment | undefined = undefined;
-    _chart: Chart | null = null;
-    rowCount: number = 0;
+    _chart: Chart;
     uploadCount: number = 0;
     downloadCount: number = 0;
+
+    constructor(chart: Chart) {
+        this._chart = chart;
+    }
 
     /**
      * parse result.csv and create graph with _startDate and _endDate filter
      */
     parse(input: string = "data/result.csv", download: boolean = true) {
-        this.rowCount = 0;
-
-        let parseManager = this;
+        const me = this;
 
         Papa.parse(input, {
             download: download,
@@ -121,71 +144,74 @@ class ParseManager {
                 //parseManager.parse(csvData, false);
             },
             step(row: Papa.ParseResult<string>) {
-                parseManager.rowCount += 1;
-
-                if (parseManager.header.length == 0) {
-                    parseManager.header = row.data;
+                if (me.header.length == 0) {
+                    me.header = row.data;
+                    MeasureRow.initialize(row.data);
                 } else {
-                    parseManager.addDataRow(new MeasureRow(parseManager.header, row.data));
+                    me.addDataRow(new MeasureRow(row.data));
                 }
             },
             complete(results: Papa.ParseResult<string>) {
-                parseManager.flush();
+                me.flush();
             }
         });
     }
 
     flush() {
-        this.addDataRows(this.newData);
-        for (let key in this.newData) {
-            this.data[key] = this.newData[key];
-        }
-        this.newData = {};
+        this.addDataRows(this.data);
+        this.data = {};
+        this._chart.update();
     }
 
     addDataRow(measureRow: MeasureRow) {
         if (measureRow.isValid()) {
-            this.newData[measureRow.timestamp] = measureRow;
-            if (Object.keys(this.newData).length > 1000) {
-                this.flush();
-            }
+            this.data[measureRow.timestamp] = measureRow;
         }
     }
 
-    addDataRows(measureRows: { [key: number]: MeasureRow }) {
-        if (this._chart != null && this._chart.data.labels !== undefined) {
-            const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
+    _makeDataPoint(x: number, y: number): ParsedDataType {
+        return {
+            x: x,
+            y: y
+        };
+    }
 
-            [0, 1, 2].forEach((index) => {
-                if (dataSets[index].data == undefined) {
-                    dataSets[index].data = [];
-                }
-            });
+    addDataRows(measureRows: { [key: string]: MeasureRow }) {
+        let timeSorted: string[] = [];
+        for (let key in measureRows) {
+            timeSorted.push(key);
+        }
+        timeSorted.sort();
 
-            for (let timestamp in measureRows) {
+        if (this._chart.data.labels != undefined && this._chart.data.datasets != undefined) {
+            const me = this;
+            let dataLabels: string[] = [];
+            let dataPings: ParsedDataType[] = [];
+            let dataUploads: ParsedDataType[] = [];
+            let dataDownloads: ParsedDataType[] = [];
+
+            timeSorted.forEach(function (timestamp: string) {
                 let measureRow = measureRows[timestamp];
 
-                const useRowData = true;
-
-                //let useRowData: boolean = this._startDate == undefined || this._endDate == undefined;
-                //useRowData ||= measureRow.time.isAfter(this._startDate) && measureRow.time.isBefore(this._endDate);
-
-                if (useRowData) {
-                    if (measureRow.upload > measureRow.download) {
-                        this.uploadCount += 1;
-                    } else {
-                        this.downloadCount += 1;
-                    }
-
-                    this._chart.data.labels.push(measureRow.time.format("YYYY-MM-DD"));
-
-                    dataSets[0].data.push(measureRow.ping);
-                    dataSets[1].data.push(measureRow.upload);
-                    dataSets[2].data.push(measureRow.download);
+                if (measureRow.upload > measureRow.download) {
+                    me.uploadCount += 1;
                 } else {
-                    console.log(`Skipped row: ${measureRow.timestamp.toString()} ${measureRow.time.toString()}`);
+                    me.downloadCount += 1;
                 }
-            }
+
+                const label = measureRow.time.format("YYYY-MM-DD");
+                dataPings.push(me._makeDataPoint(measureRow.timestamp, measureRow.ping));
+                dataUploads.push(me._makeDataPoint(measureRow.timestamp, measureRow.upload));
+                dataDownloads.push(me._makeDataPoint(measureRow.timestamp, measureRow.download));
+                dataLabels.push(label);
+            });
+
+            this._chart.data.labels = dataLabels;
+            this._chart.data.datasets[0].data = dataPings;
+            this._chart.data.datasets[1].data = dataUploads;
+            this._chart.data.datasets[2].data = dataDownloads;
+
+            const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
 
             /**
              * Graph has to be filled dynamically whether upload or download is higher.
@@ -211,8 +237,6 @@ class ParseManager {
                 dataSets[1].fill = false;
                 dataSets[2].fill = true;
             }
-
-            this._chart.update();
         }
     }
 
@@ -253,16 +277,6 @@ class ParseManager {
      */
     setEndDate(endDate: moment.MomentInput): ParseManager {
         this._endDate = moment(endDate);
-        return this;
-    }
-
-    /**
-     *
-     * @param chart {*|e}
-     * @returns {ParseManager}
-     */
-    setChart(chart: Chart | null): ParseManager {
-        this._chart = chart;
         return this;
     }
 
@@ -341,26 +355,6 @@ $(function () {
     Chart.register(...registerables);
     Chart.register(zoomPlugin);
 
-    const parseManager = new ParseManager();
-
-    const daterangeConfig: daterangepicker.Options = {
-        locale: {
-            format: appConfig.dateFormat
-        },
-        autoApply: true,
-        opens: "left"
-    };
-    $.extend(daterangeConfig, appConfig.daterange);
-
-    const dateRange = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
-        start: moment.Moment,
-        end: moment.Moment
-    ) {
-        parseManager.update(start, end);
-    });
-
-    let chartJS: Chart | null = null;
-
     const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
     const chartContext = chartCanvas.getContext("2d");
     if (chartContext != null) {
@@ -368,33 +362,31 @@ $(function () {
             labels: [],
             datasets: [
                 {
+                    indexAxis: "x",
                     label: appConfig.labels.ping,
                     fill: false,
                     backgroundColor: colors.black,
                     borderColor: colors.black,
                     tension: 0,
-                    data: [],
-                    yAxisID: "yAxis"
+                    data: []
                 },
                 {
+                    indexAxis: "x",
                     label: appConfig.labels.upload,
-                    //isMB: true,
                     fill: false,
                     backgroundColor: colors.green,
                     borderColor: colors.green,
                     tension: 0,
-                    data: [],
-                    yAxisID: "yAxis"
+                    data: []
                 },
                 {
+                    indexAxis: "x",
                     label: appConfig.labels.download,
-                    //isMB: true,
                     fill: true,
                     backgroundColor: colors.orange,
                     borderColor: colors.orange,
                     tension: 0,
-                    data: [],
-                    yAxisID: "yAxis"
+                    data: []
                 }
             ] as ChartDataset<"line">[]
         } as ChartData<"line">;
@@ -403,7 +395,8 @@ $(function () {
             type: "line",
             data: data,
             options: {
-                //spanGaps: 1000 * 60 * 60 * 24 * 2, // 2 days
+                parsing: false,
+                animation: false,
                 normalized: true,
                 responsive: true,
                 maintainAspectRatio: false,
@@ -412,30 +405,28 @@ $(function () {
                     intersect: true
                 },
                 scales: {
-                    xAxis: {
-                        timeseries: {
-                            tooltipFormat: "YYYY-MM-DD",
-                            unit: "day",
+                    x: {
+                        type: "time",
+                        time: {
                             displayFormats: {
                                 day: "YYYY-MM-DD",
-                                month: "YYYY-MM-DD",
+                                month: "MMM YYYY",
                                 year: "YYYY"
                             }
                         },
                         title: {
                             display: true,
-                            text: "Speedtest Times"
+                            text: "Speedtest Time"
                         }
-                    },
-                    yAxis: {
-                        display: true,
-                        ticks: {
-                            source: "labels"
-                        },
-                        axis: "y"
                     }
                 },
                 plugins: {
+                    decimation: {
+                        enabled: true,
+                        threshold: 400,
+                        algorithm: "lttb",
+                        samples: 1000
+                    },
                     legend: {
                         position: "bottom"
                     },
@@ -479,29 +470,46 @@ $(function () {
             }
         } as ChartConfiguration<"line">;
 
-        chartJS = new Chart(chartContext, config);
-    }
+        let chartJS = new Chart(chartContext, config);
+        const parseManager = new ParseManager(chartJS);
 
-    parseManager.setChart(chartJS);
+        const daterangeConfig: daterangepicker.Options = {
+            locale: {
+                format: appConfig.dateFormat
+            },
+            autoApply: true,
+            opens: "left"
+        };
+        $.extend(daterangeConfig, appConfig.daterange);
 
-    moment.locale(appConfig.locale);
+        const dateRange = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
+            start: moment.Moment,
+            end: moment.Moment
+        ) {
+            parseManager.update(start, end);
+        });
 
-    if (appConfig.daterange != null && appConfig.daterange.startDate && appConfig.daterange.endDate) {
-        parseManager.setStartDate(appConfig.daterange.startDate);
-        parseManager.setEndDate(appConfig.daterange.endDate);
-    }
-    parseManager.parse();
+        moment.locale(appConfig.locale);
 
-    const buttonStartSpeedtest = new ButtonStartSpeedtest("#button-start-speedtest");
+        if (appConfig.daterange != null && appConfig.daterange.startDate && appConfig.daterange.endDate) {
+            parseManager.setStartDate(appConfig.daterange.startDate);
+            parseManager.setEndDate(appConfig.daterange.endDate);
+        }
+        parseManager.parse();
 
-    buttonStartSpeedtest.onClick(() => {
-        console.log("Issued speedtest request.");
-        $.get("/run_speedtest", function (data, status) {
-            buttonStartSpeedtest.done();
-            console.log(`Response: '${data}' '${status}'`);
-            parseManager.flushChart(true, function () {
-                parseManager.parse();
+        const buttonStartSpeedtest = new ButtonStartSpeedtest("#button-start-speedtest");
+
+        buttonStartSpeedtest.onClick(() => {
+            console.log("Issued speedtest request.");
+            $.get("/run_speedtest", function (data, status) {
+                buttonStartSpeedtest.done();
+
+                console.log(`Response: '${data}' '${status}'`);
+
+                parseManager.flushChart(true, function () {
+                    parseManager.parse();
+                });
             });
         });
-    });
+    }
 });

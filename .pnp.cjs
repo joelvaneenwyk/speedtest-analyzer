@@ -3759,7 +3759,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ]],
       ["chart.js", [
         ["npm:3.5.0", {
-          "packageLocation": "./.yarn/cache/chart.js-npm-3.5.0-66341440f6-9ce5400b3e.zip/node_modules/chart.js/",
+          "packageLocation": "./.yarn/unplugged/chart.js-npm-3.5.0-66341440f6/node_modules/chart.js/",
           "packageDependencies": [
             ["chart.js", "npm:3.5.0"]
           ],

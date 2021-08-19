@@ -111,6 +111,9 @@
     "dependenciesMeta": {
         "bootstrap@5.1.0": {
             "unplugged": true
+        },
+        "chart.js@3.5.0": {
+            "unplugged": true
         }
     }
 }
