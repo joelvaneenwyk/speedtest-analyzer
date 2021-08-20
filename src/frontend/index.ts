@@ -9,10 +9,9 @@ import "./scss/home.scss";
 // You can specify which plugins you need
 import $ from "jquery";
 import moment from "moment";
-import { Chart, ChartDataset, ChartData, registerables, ChartConfiguration } from "chart.js";
-import { valueOrDefault } from "chart.js/helpers";
+import { Plugin, UpdateMode, Chart, ChartDataset, ChartData, registerables, ChartConfiguration, Point } from "chart.js";
 import "chartjs-adapter-moment";
-import zoomPlugin from "chartjs-plugin-zoom";
+import ZoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
 import daterangepicker from "daterangepicker";
 
@@ -115,24 +114,35 @@ class MeasureRow {
 type ParsedDataType = { x: number; y: number };
 
 class SpeedtestDataView {
-    useChartDecimation = false;
+    private useChartDecimation = false;
 
-    static axisColors = {
+    private static axisColors = {
         orange: "rgba(255,190,142,0.5)",
         black: "rgba(90,90,90,1)",
         green: "rgba(143,181,178,0.8)"
     };
 
-    header: string[] = [];
-    data: { [key: string]: MeasureRow } = {};
-    _startDate: moment.Moment | undefined = undefined;
-    _endDate: moment.Moment | undefined = undefined;
-    _chart: Chart;
-    _uploadCount: number = 0;
-    _downloadCount: number = 0;
-    _dateRangePicker: daterangepicker;
-    _buttonStartSpeedtest: JQuery<HTMLElement>;
-    _options: SpeedtestOptions;
+    private _dataHeader: string[] = [];
+
+    private _chartData: { [key: string]: MeasureRow } = {};
+
+    private _chart: Chart;
+    private _buttonStartSpeedtest: JQuery<HTMLElement>;
+
+    private _uploadCount: number = 0;
+    private _downloadCount: number = 0;
+
+    private _dateRangePicker: daterangepicker;
+
+    private _options: SpeedtestOptions;
+
+    private _dataMin: MeasureRow | undefined;
+    private _dataMax: MeasureRow | undefined;
+
+    private _viewDirty: boolean = false;
+    private _viewChangePending: boolean = false;
+    private _viewMin: MeasureRow | undefined;
+    private _viewMax: MeasureRow | undefined;
 
     constructor(chartContext: CanvasRenderingContext2D, options: SpeedtestOptions) {
         const me = this;
@@ -175,6 +185,13 @@ class SpeedtestDataView {
             ] as ChartDataset<"line">[]
         } as ChartData<"line">;
 
+        const limitViewPlugin = {
+            id: "LimitViewPlugin",
+            afterDraw(chart: Chart, args: any) {
+                me._onPostUpdateViewSet();
+            }
+        } as Plugin<"line">;
+
         const chartConfig: ChartConfiguration<"line"> = {
             type: "line",
             data: chartData,
@@ -192,16 +209,43 @@ class SpeedtestDataView {
                 scales: {
                     x: {
                         type: "time",
+                        ticks: {
+                            align: "center",
+                            padding: 5,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            major: {
+                                enabled: true
+                            }
+                        },
                         time: {
+                            stepSize: 2,
+                            //minUnit: "hour",
                             displayFormats: {
+                                hour: "MMM-DD hhA",
                                 day: "YYYY-MM-DD",
+                                week: "YYYY-MM-DD",
                                 month: "MMM YYYY",
                                 year: "YYYY"
                             }
                         },
                         title: {
                             display: true,
-                            text: "Speedtest Time"
+                            text: "Test Time",
+                            font: {
+                                size: 13,
+                                weight: "bold"
+                            }
+                        }
+                    },
+                    y: {
+                        type: "linear",
+                        axis: "y",
+                        min: 0,
+                        ticks: {
+                            callback: function (tickValue, index, values) {
+                                return Number(tickValue).toFixed(1).toString();
+                            }
                         }
                     }
                 },
@@ -217,19 +261,21 @@ class SpeedtestDataView {
                     },
                     zoom: {
                         pan: {
-                            enabled: true,
                             mode: "xy",
-                            onPan: (context) => this.onPan(context),
-                            onPanComplete: (context) => this.onPanComplete(context)
+                            enabled: true,
+                            onPanStart: (context) => this._onViewChangeStart(),
+                            onPanComplete: (context) => this._onViewChangeEnd()
                         },
                         zoom: {
+                            mode: "x",
                             wheel: {
                                 enabled: true
                             },
                             pinch: {
                                 enabled: true
                             },
-                            mode: "x"
+                            onZoomStart: (context) => this._onViewChangeStart(),
+                            onZoomComplete: (context) => this._onViewChangeEnd()
                         }
                     }
                 },
@@ -246,39 +292,79 @@ class SpeedtestDataView {
                         }
                     }
                 }
-            }
+            },
+            plugins: [limitViewPlugin]
         } as ChartConfiguration<"line">;
 
         let currentChart = Chart.getChart(chartContext);
 
         this._chart = currentChart != null ? currentChart : new Chart(chartContext, chartConfig);
 
-        const daterangeConfig: daterangepicker.Options = {
-            locale: {
-                format: this._options.dateFormat
+        const dateRangeConfig: daterangepicker.Options = $.extend(
+            {
+                locale: {
+                    format: this._options.dateFormat
+                },
+                autoApply: true,
+                opens: "left"
             },
-            autoApply: true,
-            opens: "left"
-        };
-        $.extend(daterangeConfig, this._options.dateRangePickerOptions);
+            this._options.dateRangePickerOptions
+        );
 
-        this._dateRangePicker = new daterangepicker($("input[name='daterange']").get(0), daterangeConfig, function (
-            start: moment.Moment,
-            end: moment.Moment
-        ) {
-            me.update(start, end);
-        });
-
-        if (
-            this._options.dateRangePickerOptions != null &&
-            this._options.dateRangePickerOptions.startDate &&
-            this._options.dateRangePickerOptions.endDate
-        ) {
-            this.setStartDate(this._options.dateRangePickerOptions.startDate);
-            this.setEndDate(this._options.dateRangePickerOptions.endDate);
+        if (sessionStorage.getItem("startDate")) {
+            dateRangeConfig.startDate = moment(sessionStorage.getItem("startDate")).toDate();
         }
 
+        if (sessionStorage.getItem("endDate")) {
+            dateRangeConfig.endDate = moment(sessionStorage.getItem("endDate")).toDate();
+        }
+
+        this._dateRangePicker = new daterangepicker($("input[name='daterange']").get(0), dateRangeConfig, (start, end) =>
+            this.onDatePickerChange(start, end)
+        );
+
         this._buttonStartSpeedtest.on("click", () => this.onButtonClick());
+    }
+
+    _onPostUpdateViewSet() {
+        //if (
+        //    this._viewDirty &&
+        //    this._dataMin != undefined &&
+        //    this._dataMax != undefined &&
+        //    this._viewMin != undefined &&
+        //    this._viewMax != undefined
+        //) {
+        //    this._viewDirty = false;
+        //    this._viewChangePending = true;
+        //    this._chart.pan(1, Object.values(this._chart.scales));
+        //    this._chart.zoomScale("x", { min: this._dataMin, max: this._dataMax });
+        //}
+    }
+
+    _onViewChangeStart() {
+        let decimation = this._chart.config.options?.plugins?.decimation;
+        decimation && (decimation.enabled = false);
+    }
+
+    _onViewChangeEnd() {
+        let decimation = this._chart.config.options?.plugins?.decimation;
+        decimation && (decimation.enabled = this.useChartDecimation);
+
+        let start = moment(this._chart.scales.x.min);
+        let end = moment(this._chart.scales.x.max);
+
+        this._dateRangePicker.setStartDate(start.toDate());
+        this._dateRangePicker.setEndDate(end.toDate());
+
+        sessionStorage.setItem("startDate", start.toISOString());
+        sessionStorage.setItem("endDate", end.toISOString());
+    }
+
+    onDatePickerChange(start: moment.Moment, end: moment.Moment) {
+        this._chart.zoomScale("x", {
+            min: this._dateRangePicker.startDate.valueOf(),
+            max: this._dateRangePicker.endDate.valueOf()
+        });
     }
 
     onButtonClick() {
@@ -296,17 +382,6 @@ class SpeedtestDataView {
                 me.parseData();
             });
         });
-    }
-
-    onPan(context: { chart: Chart }) {
-        let decimation = context.chart.config.options?.plugins?.decimation;
-        decimation && (decimation.enabled = false);
-    }
-
-    onPanComplete(context: { chart: Chart }) {
-        let decimation = context.chart.config.options?.plugins?.decimation;
-        decimation && (decimation.enabled = this.useChartDecimation);
-        context.chart.update();
     }
 
     _setButtonLabelLoading() {
@@ -353,8 +428,8 @@ class SpeedtestDataView {
                 me.parseData(csvData, false);
             },
             step(row: Papa.ParseResult<string>) {
-                if (me.header.length == 0) {
-                    me.header = row.data;
+                if (me._dataHeader.length == 0) {
+                    me._dataHeader = row.data;
                     MeasureRow.initialize(row.data);
                 } else {
                     me.addDataRow(new MeasureRow(row.data));
@@ -367,12 +442,12 @@ class SpeedtestDataView {
     }
 
     flush() {
-        this.addDataRows(this.data);
+        this.addDataRows(this._chartData);
     }
 
     addDataRow(measureRow: MeasureRow) {
         if (measureRow.isValid()) {
-            this.data[measureRow.timestamp] = measureRow;
+            this._chartData[measureRow.timestamp] = measureRow;
         }
     }
 
@@ -384,6 +459,8 @@ class SpeedtestDataView {
     }
 
     addDataRows(measureRows: { [key: string]: MeasureRow }) {
+        const me = this;
+
         let timeSorted: string[] = [];
         for (let key in measureRows) {
             timeSorted.push(key);
@@ -391,15 +468,14 @@ class SpeedtestDataView {
         timeSorted.sort();
 
         if (this._chart.data.labels != undefined && this._chart.data.datasets != undefined) {
-            const me = this;
             let dataLabels: string[] = [];
             let dataPings: ParsedDataType[] = [];
             let dataUploads: ParsedDataType[] = [];
             let dataDownloads: ParsedDataType[] = [];
             let previousRow: MeasureRow | undefined;
 
-            let minIndex: number | undefined;
-            let maxIndex: number | undefined;
+            this._viewMin = undefined;
+            this._viewMax = undefined;
 
             timeSorted.forEach(function (timestamp: string) {
                 let measureRow = measureRows[timestamp];
@@ -419,12 +495,16 @@ class SpeedtestDataView {
                     dataLabels.push("");
                 }
 
-                if (minIndex == undefined && measureRow.time.isAfter(me._startDate)) {
-                    minIndex = measureRow.timestamp;
+                if (me._viewMin == undefined && measureRow.time.isAfter(me._dateRangePicker.startDate)) {
+                    me._viewMin = measureRow;
                 }
 
-                if (minIndex != undefined && maxIndex == undefined && measureRow.time.isAfter(me._endDate)) {
-                    maxIndex = measureRow.timestamp;
+                if (
+                    me._viewMin != undefined &&
+                    me._viewMax == undefined &&
+                    measureRow.time.isAfter(me._dateRangePicker.endDate)
+                ) {
+                    me._viewMax = measureRow;
                 }
 
                 dataPings.push(me._makeDataPoint(measureRow.timestamp, measureRow.ping));
@@ -467,26 +547,21 @@ class SpeedtestDataView {
                 dataSets[2].fill = true;
             }
 
-            if (maxIndex == undefined && previousRow != undefined) {
-                maxIndex = previousRow.timestamp;
+            if (this._viewMax == undefined && previousRow != undefined) {
+                this._viewMax = previousRow;
             }
 
-            let xAxis = this._chart.scales["x"];
+            this._dataMin = measureRows[timeSorted[0]];
+            this._dataMax = measureRows[timeSorted[timeSorted.length - 1]];
 
-            if (minIndex != undefined && maxIndex != undefined) {
-                //this._chart.options.datasets[0].su.min = minIndex;
-                //xAxis.max = maxIndex;
+            this._viewDirty = true;
+
+            if (this._dateRangePicker.endDate && this._dateRangePicker.startDate) {
+                this._chart.zoomScale("x", {
+                    min: this._dateRangePicker.startDate.valueOf(),
+                    max: this._dateRangePicker.endDate.valueOf()
+                });
             }
-
-            xAxis.afterDataLimits = function () {
-                if (minIndex != undefined && maxIndex != undefined) {
-                    //xAxis.min = minIndex;
-                    //xAxis.max = maxIndex;
-                }
-                xAxis.afterDataLimits = () => {};
-            };
-
-            this._chart.update();
         }
     }
 
@@ -507,47 +582,13 @@ class SpeedtestDataView {
 
         return true;
     }
-
-    /**
-     * set start date as filter
-     *
-     * @param startDate
-     * @returns {ParseManager}
-     */
-    setStartDate(startDate: moment.MomentInput): SpeedtestDataView {
-        this._startDate = moment(startDate);
-        return this;
-    }
-
-    /**
-     * set end date as filter
-     *
-     * @param endDate
-     * @returns {ParseManager}
-     */
-    setEndDate(endDate: moment.MomentInput): SpeedtestDataView {
-        this._endDate = moment(endDate);
-        return this;
-    }
-
-    /**
-     * set a new filter and update the graph
-     *
-     * @param startDate
-     * @param endDate
-     */
-    update(startDate: moment.Moment, endDate: moment.Moment) {
-        this._startDate = startDate;
-        this._endDate = endDate;
-        this.flushChart(true, () => this.parseData());
-    }
 }
 
 export let speedtestOptions = new SpeedtestOptions();
 
 $(function () {
     Chart.register(...registerables);
-    Chart.register(zoomPlugin);
+    Chart.register(ZoomPlugin);
 
     const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
     const chartContext = chartCanvas.getContext("2d");
