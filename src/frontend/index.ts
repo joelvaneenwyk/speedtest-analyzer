@@ -136,11 +136,6 @@ class SpeedtestDataView {
 
     private _options: SpeedtestOptions;
 
-    private _dataMin: MeasureRow | undefined;
-    private _dataMax: MeasureRow | undefined;
-
-    private _viewDirty: boolean = false;
-    private _viewChangePending: boolean = false;
     private _viewMin: MeasureRow | undefined;
     private _viewMax: MeasureRow | undefined;
 
@@ -185,13 +180,6 @@ class SpeedtestDataView {
             ] as ChartDataset<"line">[]
         } as ChartData<"line">;
 
-        const limitViewPlugin = {
-            id: "LimitViewPlugin",
-            afterDraw(chart: Chart, args: any) {
-                me._onPostUpdateViewSet();
-            }
-        } as Plugin<"line">;
-
         const chartConfig: ChartConfiguration<"line"> = {
             type: "line",
             data: chartData,
@@ -220,9 +208,9 @@ class SpeedtestDataView {
                         },
                         time: {
                             stepSize: 2,
-                            //minUnit: "hour",
                             displayFormats: {
-                                hour: "MMM-DD hhA",
+                                minute: "MMM DD, hhA",
+                                hour: "MMM DD, hhA",
                                 day: "YYYY-MM-DD",
                                 week: "YYYY-MM-DD",
                                 month: "MMM YYYY",
@@ -243,6 +231,7 @@ class SpeedtestDataView {
                         axis: "y",
                         min: 0,
                         ticks: {
+                            padding: 20,
                             callback: function (tickValue, index, values) {
                                 return Number(tickValue).toFixed(1).toString();
                             }
@@ -260,6 +249,11 @@ class SpeedtestDataView {
                         position: "bottom"
                     },
                     zoom: {
+                        limits: {
+                            y: {
+                                min: 0
+                            }
+                        },
                         pan: {
                             mode: "xy",
                             enabled: true,
@@ -292,8 +286,7 @@ class SpeedtestDataView {
                         }
                     }
                 }
-            },
-            plugins: [limitViewPlugin]
+            }
         } as ChartConfiguration<"line">;
 
         let currentChart = Chart.getChart(chartContext);
@@ -324,21 +317,6 @@ class SpeedtestDataView {
         );
 
         this._buttonStartSpeedtest.on("click", () => this.onButtonClick());
-    }
-
-    _onPostUpdateViewSet() {
-        //if (
-        //    this._viewDirty &&
-        //    this._dataMin != undefined &&
-        //    this._dataMax != undefined &&
-        //    this._viewMin != undefined &&
-        //    this._viewMax != undefined
-        //) {
-        //    this._viewDirty = false;
-        //    this._viewChangePending = true;
-        //    this._chart.pan(1, Object.values(this._chart.scales));
-        //    this._chart.zoomScale("x", { min: this._dataMin, max: this._dataMax });
-        //}
     }
 
     _onViewChangeStart() {
@@ -378,9 +356,10 @@ class SpeedtestDataView {
 
             console.log(`Response: '${data}' '${status}'`);
 
-            me.flushChart(true, function () {
-                me.parseData();
-            });
+            me.parseData();
+        }).fail(function () {
+            console.log("Failed to run speedtest on server.");
+            me.parseData();
         });
     }
 
@@ -551,17 +530,14 @@ class SpeedtestDataView {
                 this._viewMax = previousRow;
             }
 
-            this._dataMin = measureRows[timeSorted[0]];
-            this._dataMax = measureRows[timeSorted[timeSorted.length - 1]];
-
-            this._viewDirty = true;
-
             if (this._dateRangePicker.endDate && this._dateRangePicker.startDate) {
                 this._chart.zoomScale("x", {
                     min: this._dateRangePicker.startDate.valueOf(),
                     max: this._dateRangePicker.endDate.valueOf()
                 });
             }
+
+            this._chart.update();
         }
     }
 
