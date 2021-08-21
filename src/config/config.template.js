@@ -3,15 +3,15 @@
  */
 /* eslint-disable no-undef */
 
-// appConfig.customTitle = "Statistics",
-// appConfig.dateFormat = "YYYY.MM.DD";
-// appConfig.locale = "en";
-// appConfig.labels = {
+// speedtestConfig.customTitle = "Statistics",
+// speedtestConfig.dateFormat = "YYYY.MM.DD";
+// speedtestConfig.locale = "en";
+// speedtestConfig.labels = {
 //     download: "Download",
 //     ping: "Ping",
 //     upload: "Upload"
 // };
-// appConfig.daterange = {
+// speedtestConfig.daterange = {
 //     timePicker: true,
 //     timePicker24Hour: true,
 //     startDate: moment().subtract(1, "month"),

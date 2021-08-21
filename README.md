@@ -11,7 +11,7 @@ This repository is based on the excellent [roest01/docker-speedtest-analyser](ht
 3. Data is saved to  `/usr/share/nginx/html/data/results.csv` on Docker instance. Mount this data folder.
 4. ⚠ NGINX is prepared but not configured for SSL
 
-![Statistic Screenshot](images/speedtest_screenshot.png)
+![Statistic Screenshot](https://github.com/joelvaneenwyk/speedtest-analyzer/raw/main/images/speedtest_screenshot.png)
 
 ## History
 

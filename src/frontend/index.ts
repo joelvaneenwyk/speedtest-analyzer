@@ -9,23 +9,35 @@ import "./scss/home.scss";
 // You can specify which plugins you need
 import $ from "jquery";
 import moment from "moment";
-import { Plugin, UpdateMode, Chart, ChartDataset, ChartData, registerables, ChartConfiguration, Point } from "chart.js";
+import { Chart, ChartDataset, ChartData, registerables, ChartConfiguration, Color } from "chart.js";
 import "chartjs-adapter-moment";
 import ZoomPlugin from "chartjs-plugin-zoom";
 import Papa from "papaparse";
 import daterangepicker from "daterangepicker";
 
-class SpeedtestLabels {
-    download: string = "Download";
-    ping: string = "Ping";
-    upload: string = "Upload";
+enum SpeedtestResultCategory {
+    download,
+    upload,
+    ping
 }
+
+type SpeedtestResultLabels = {
+    [Property in keyof typeof SpeedtestResultCategory]: string;
+};
+
+type SpeedtestResultColors = {
+    [Property in keyof typeof SpeedtestResultCategory]: Color;
+};
 
 class SpeedtestOptions {
     customTitle: string | undefined;
     dateFormat: string = "YYYY.MM.DD";
     locale: string = "en";
-    labels: SpeedtestLabels = new SpeedtestLabels();
+    labels: SpeedtestResultLabels = {
+        download: "Download",
+        upload: "Upload",
+        ping: "Ping"
+    };
     dateRangePickerOptions: daterangepicker.Options;
 
     constructor() {
@@ -116,15 +128,22 @@ type ParsedDataType = { x: number; y: number };
 class SpeedtestDataView {
     private useChartDecimation = false;
 
-    private static axisColors = {
-        orange: "rgba(255,190,142,0.5)",
-        black: "rgba(90,90,90,1)",
-        green: "rgba(143,181,178,0.8)"
+    private axisColors: SpeedtestResultColors = {
+        download: "rgba(255,190,142,0.7)",
+        ping: "rgba(90,90,90,0.9)",
+        upload: "rgba(143,181,178,0.8)"
+    };
+
+    private axisColorsFaded: SpeedtestResultColors = {
+        download: "rgba(255,190,142,0.4)",
+        ping: "rgba(90,90,90,0.4)",
+        upload: "rgba(143,181,178,0.4)"
     };
 
     private _dataHeader: string[] = [];
 
-    private _chartData: { [key: string]: MeasureRow } = {};
+    private _chartData: { [key: number]: MeasureRow } = {};
+    private _chartDataMeasures: MeasureRow[] = [];
 
     private _chart: Chart;
     private _buttonStartSpeedtest: JQuery<HTMLElement>;
@@ -142,7 +161,6 @@ class SpeedtestDataView {
     constructor(chartContext: CanvasRenderingContext2D, options: SpeedtestOptions) {
         const me = this;
 
-        this._buttonStartSpeedtest = $("#button-start-speedtest");
         this._options = options;
 
         moment.locale(this._options.locale);
@@ -154,8 +172,8 @@ class SpeedtestDataView {
                     indexAxis: "x",
                     label: this._options.labels.ping,
                     fill: false,
-                    backgroundColor: SpeedtestDataView.axisColors.black,
-                    borderColor: SpeedtestDataView.axisColors.black,
+                    backgroundColor: me.axisColors.ping,
+                    borderColor: me.axisColors.ping,
                     tension: 0,
                     data: []
                 },
@@ -163,8 +181,8 @@ class SpeedtestDataView {
                     indexAxis: "x",
                     label: this._options.labels.upload,
                     fill: false,
-                    backgroundColor: SpeedtestDataView.axisColors.green,
-                    borderColor: SpeedtestDataView.axisColors.green,
+                    backgroundColor: me.axisColors.upload,
+                    borderColor: me.axisColors.upload,
                     tension: 0,
                     data: []
                 },
@@ -172,8 +190,8 @@ class SpeedtestDataView {
                     indexAxis: "x",
                     label: this._options.labels.download,
                     fill: true,
-                    backgroundColor: SpeedtestDataView.axisColors.orange,
-                    borderColor: SpeedtestDataView.axisColors.orange,
+                    backgroundColor: me.axisColors.download,
+                    borderColor: me.axisColors.download,
                     tension: 0,
                     data: []
                 }
@@ -186,7 +204,7 @@ class SpeedtestDataView {
             options: {
                 spanGaps: false,
                 parsing: false,
-                animation: false,
+                animation: true,
                 normalized: true,
                 responsive: true,
                 maintainAspectRatio: false,
@@ -279,10 +297,8 @@ class SpeedtestDataView {
                     callbacks: {
                         label(item: any) {
                             const label = chartData.datasets[item.datasetIndex].label;
-                            const useMegabits = label?.toLowerCase() != "ping";
-                            return useMegabits
-                                ? `${chartData.datasets[item.datasetIndex].label}: ${item.yLabel} MBits/s`
-                                : `${chartData.datasets[item.datasetIndex].label}: ${item.yLabel}`;
+                            const useMegabits = label != me._options.labels.ping;
+                            return useMegabits ? `${label}: ${item.yLabel} MBits/s` : `${label}: ${item.yLabel}`;
                         }
                     }
                 }
@@ -316,7 +332,58 @@ class SpeedtestDataView {
             this.onDatePickerChange(start, end)
         );
 
+        this._buttonStartSpeedtest = $("#button-start-speedtest");
         this._buttonStartSpeedtest.on("click", () => this.onButtonClick());
+
+        $("#button-refresh").on("click", () => {
+            let onCompletes: (() => void)[] = [];
+
+            me._chart.options.animation = {
+                onComplete: function (event: any) {
+                    onCompletes.forEach((onCompleteFunc) => onCompleteFunc());
+                    me._chart.update();
+                }
+            };
+
+            chartData.datasets.forEach((dataset) => {
+                if (dataset.label) {
+                    let original: Color;
+                    let faded: Color;
+                    let refreshed = false;
+
+                    if (dataset.label == me._options.labels.download) {
+                        original = me.axisColors.download;
+                        faded = me.axisColorsFaded.download;
+                    } else if (dataset.label == me._options.labels.upload) {
+                        original = me.axisColors.upload;
+                        faded = me.axisColorsFaded.upload;
+                    } else {
+                        original = me.axisColors.ping;
+                        faded = me.axisColorsFaded.ping;
+                    }
+
+                    onCompletes.push(function () {
+                        if (!refreshed) {
+                            refreshed = true;
+                            dataset.backgroundColor = original;
+                            dataset.animation = {
+                                easing: "easeOutSine",
+                                duration: 300
+                            };
+                        }
+                    });
+
+                    dataset.animation = {
+                        easing: "easeInBack",
+                        duration: 200
+                    };
+
+                    dataset.backgroundColor = faded;
+
+                    this._chart.update();
+                }
+            });
+        });
     }
 
     _onViewChangeStart() {
@@ -353,22 +420,21 @@ class SpeedtestDataView {
 
         $.get("/run_speedtest", function (data, status) {
             me._resetButtonLabel();
-
             console.log(`Response: '${data}' '${status}'`);
-
             me.parseData();
         }).fail(function () {
+            me._resetButtonLabel();
             console.log("Failed to run speedtest on server.");
             me.parseData();
         });
     }
 
     _setButtonLabelLoading() {
-        this._buttonStartSpeedtest.html($.data(this._buttonStartSpeedtest, "loading-text"));
+        this._buttonStartSpeedtest.html(this._buttonStartSpeedtest.data("loading-text"));
     }
 
     _resetButtonLabel() {
-        this._buttonStartSpeedtest.html($.data(this._buttonStartSpeedtest, "original-text"));
+        this._buttonStartSpeedtest.html(this._buttonStartSpeedtest.data("original-text"));
     }
 
     /**
@@ -393,9 +459,10 @@ class SpeedtestDataView {
                 let time = moment().subtract(20, "d");
                 let csvData: string = "timestamp,ping,download,upload\n";
                 while (time.isBefore(today)) {
-                    let timestamp = moment(time)
-                        .add(Math.random() * 60 * 12, "m")
-                        .unix();
+                    let timestamp =
+                        moment(time)
+                            .add(Math.random() * 60 * 12, "m")
+                            .unix() * 1000.0;
                     let ping = Math.random() * 50 + 10;
                     let download = Math.random() * 500 + 10;
                     let upload = Math.random() * 30 + 10;
@@ -415,13 +482,9 @@ class SpeedtestDataView {
                 }
             },
             complete(results: Papa.ParseResult<string>) {
-                me.flush();
+                me.addDataRows(me._chartData);
             }
         });
-    }
-
-    flush() {
-        this.addDataRows(this._chartData);
     }
 
     addDataRow(measureRow: MeasureRow) {
@@ -430,74 +493,99 @@ class SpeedtestDataView {
         }
     }
 
-    _makeDataPoint(x: number, y: number): ParsedDataType {
-        return {
-            x: x,
-            y: y
-        };
+    _findElementIndex(ar: any[], el: any, compare_fn: any) {
+        var m: number = 0;
+        var n: number = ar.length - 1;
+        while (m <= n) {
+            var k = (n + m) >> 1;
+            var cmp = compare_fn(el, ar[k]);
+            if (cmp > 0) {
+                m = k + 1;
+            } else if (cmp < 0) {
+                n = k - 1;
+            } else {
+                return k;
+            }
+        }
+        return -m - 1;
     }
 
-    addDataRows(measureRows: { [key: string]: MeasureRow }) {
+    addDataRows(measureRows: { [key: number]: MeasureRow }) {
         const me = this;
 
-        let timeSorted: string[] = [];
-        for (let key in measureRows) {
-            timeSorted.push(key);
-        }
-        timeSorted.sort();
-
         if (this._chart.data.labels != undefined && this._chart.data.datasets != undefined) {
-            let dataLabels: string[] = [];
-            let dataPings: ParsedDataType[] = [];
-            let dataUploads: ParsedDataType[] = [];
-            let dataDownloads: ParsedDataType[] = [];
+            let measures = Object.values(measureRows).sort((a, b) => {
+                return a.time.diff(b.time);
+            });
+
+            let dataLabels: string[] = this._chart.data.labels as string[];
+            let dataPings: ParsedDataType[] = this._chart.data.datasets[0].data as ParsedDataType[];
+            let dataUploads: ParsedDataType[] = this._chart.data.datasets[1].data as ParsedDataType[];
+            let dataDownloads: ParsedDataType[] = this._chart.data.datasets[2].data as ParsedDataType[];
             let previousRow: MeasureRow | undefined;
 
             this._viewMin = undefined;
             this._viewMax = undefined;
 
-            timeSorted.forEach(function (timestamp: string) {
-                let measureRow = measureRows[timestamp];
+            let insertIndex = 0;
+            let measureIndex = 0;
 
-                if (measureRow.upload > measureRow.download) {
-                    me._uploadCount += 1;
-                } else {
-                    me._downloadCount += 1;
-                }
+            while (measureIndex < measures.length) {
+                const measure = measures[measureIndex];
 
-                const label = measureRow.time.format("YYYY-MM-DD");
-
-                if (previousRow != undefined && measureRow.time.isAfter(previousRow.time.add("7", "days"))) {
-                    dataPings.push(me._makeDataPoint(previousRow.timestamp + 1, NaN));
-                    dataUploads.push(me._makeDataPoint(previousRow.timestamp + 1, NaN));
-                    dataDownloads.push(me._makeDataPoint(previousRow.timestamp + 1, NaN));
-                    dataLabels.push("");
-                }
-
-                if (me._viewMin == undefined && measureRow.time.isAfter(me._dateRangePicker.startDate)) {
-                    me._viewMin = measureRow;
+                while (
+                    insertIndex < this._chartDataMeasures.length &&
+                    this._chartDataMeasures[insertIndex].timestamp < measure.timestamp
+                ) {
+                    insertIndex++;
                 }
 
                 if (
-                    me._viewMin != undefined &&
-                    me._viewMax == undefined &&
-                    measureRow.time.isAfter(me._dateRangePicker.endDate)
+                    insertIndex >= this._chartDataMeasures.length ||
+                    this._chartDataMeasures[insertIndex].timestamp != measure.timestamp
                 ) {
-                    me._viewMax = measureRow;
+                    if (measure.upload > measure.download) {
+                        me._uploadCount += 1;
+                    } else {
+                        me._downloadCount += 1;
+                    }
+
+                    const label = measure.time.format("YYYY-MM-DD");
+
+                    if (me._viewMin == undefined && measure.time.isAfter(me._dateRangePicker.startDate)) {
+                        me._viewMin = measure;
+                    }
+
+                    if (
+                        me._viewMin != undefined &&
+                        me._viewMax == undefined &&
+                        measure.time.isAfter(me._dateRangePicker.endDate)
+                    ) {
+                        me._viewMax = measure;
+                    }
+
+                    // Insert a gap measure so that we do not get filled graph between disconnected days
+                    if (previousRow != undefined && measure.time.diff(previousRow.time, "days") >= 1.5) {
+                        dataPings.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
+                        dataUploads.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
+                        dataDownloads.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
+                        dataLabels.splice(insertIndex, 0, "");
+                        insertIndex++;
+                    }
+
+                    dataPings.splice(insertIndex, 0, { x: measure.timestamp, y: measure.ping });
+                    dataUploads.splice(insertIndex, 0, { x: measure.timestamp, y: measure.upload });
+                    dataDownloads.splice(insertIndex, 0, { x: measure.timestamp, y: measure.download });
+                    dataLabels.splice(insertIndex, 0, label);
+                    this._chartDataMeasures.splice(insertIndex, 0, measure);
+
+                    insertIndex++;
+
+                    previousRow = measure;
                 }
 
-                dataPings.push(me._makeDataPoint(measureRow.timestamp, measureRow.ping));
-                dataUploads.push(me._makeDataPoint(measureRow.timestamp, measureRow.upload));
-                dataDownloads.push(me._makeDataPoint(measureRow.timestamp, measureRow.download));
-                dataLabels.push(label);
-
-                previousRow = measureRow;
-            });
-
-            this._chart.data.labels = dataLabels;
-            this._chart.data.datasets[0].data = dataPings;
-            this._chart.data.datasets[1].data = dataUploads;
-            this._chart.data.datasets[2].data = dataDownloads;
+                measureIndex++;
+            }
 
             const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
 
@@ -540,27 +628,9 @@ class SpeedtestDataView {
             this._chart.update();
         }
     }
-
-    flushChart(force: boolean, callback: any) {
-        this._uploadCount = 0;
-        this._downloadCount = 0;
-
-        if (this._chart != null) {
-            this._chart.data.labels = [];
-            this._chart.data.datasets.forEach(function (dataSet) {
-                dataSet.data = [];
-            });
-
-            this._chart.update();
-        }
-
-        callback();
-
-        return true;
-    }
 }
 
-export let speedtestOptions = new SpeedtestOptions();
+export let speedtestConfig = new SpeedtestOptions();
 
 $(function () {
     Chart.register(...registerables);
@@ -569,7 +639,7 @@ $(function () {
     const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
     const chartContext = chartCanvas.getContext("2d");
     if (chartContext != null) {
-        const parseManager = new SpeedtestDataView(chartContext, speedtestOptions);
+        const parseManager = new SpeedtestDataView(chartContext, speedtestConfig);
         parseManager.parseData();
     }
 });

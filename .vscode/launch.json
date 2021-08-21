@@ -7,22 +7,9 @@
         {
             "type": "pwa-msedge",
             "request": "launch",
-            "name": "Launch Edge against localhost",
-            "url": "http://localhost:14545",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "type": "vscode-edge-devtools.debug",
-            "request": "launch",
-            "name": "Launch Microsoft Edge and open the Edge DevTools",
-            "url": "http://localhost:14400",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
             "name": "Launch Edge",
-            "request": "launch",
-            "type": "pwa-msedge",
-            "url": "http://localhost:14400",
+            "url": "http://localhost:14545",
+            "outFiles": ["${workspaceFolder}/html/*.html", "${workspaceFolder}/html/static/js/*.js"],
             "webRoot": "${workspaceFolder}"
         },
         {

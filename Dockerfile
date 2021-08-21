@@ -64,7 +64,12 @@ RUN \
 # Create self-signed SSL certificates
 RUN ./src/server/generateCertificate.sh
 
-RUN rm -rf ./mypy_cache && rm -rf ./yarn
+RUN \
+    rm -rf ./mypy_cache \
+    && rm -rf ./yarn \
+    && rm -rf ./src/frontend \
+    && rm -rf ./src/config \
+    && rm ./.pnp.cjs
 
 EXPOSE 80
 EXPOSE 443

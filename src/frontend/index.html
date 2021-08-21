@@ -15,11 +15,16 @@
                 <div class="card-header p-2">
                     <span class="h4" id="title">Speedtest Results v<%= version %></span>
                     <br />
-                    <button type="button" id="button-start-speedtest" data-original-text="start manual speedtest"
-                        data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Running ..."
-                        class="mt-2 btn btn-info float-right btn-sm">
-                        Start Manual Speedtest
-                    </button>
+                    <div class="btn-group mt-2" role="group" aria-label="Server Operations">
+                        <button type="button" id="button-refresh" class="btn btn-info btn-sm">
+                            Refresh
+                        </button>
+                        <button type="button" id="button-start-speedtest" class="btn btn-info btn-sm"
+                            data-original-text="Start Manual Speedtest"
+                            data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Running ...">
+                            Start Manual Speedtest
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-2">
                     <div class="h6 card-title m-0">

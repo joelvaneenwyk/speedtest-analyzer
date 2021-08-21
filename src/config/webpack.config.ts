@@ -14,7 +14,7 @@ console.log(`Starting ${isProductionBuild ? "production" : "development"} enviro
 
 const frontend: Configuration = {
     entry: {
-        "static/js/app": paths.source.frontend.app
+        speedtest: paths.source.frontend.app
     },
 
     resolve: {
@@ -36,7 +36,6 @@ const frontend: Configuration = {
 
     plugins: [
         new HtmlPlugin({
-            chunks: ["static/js/app"],
             hash: true,
             meta: {
                 description: "Speedtest Analyzer"
@@ -63,8 +62,7 @@ const frontend: Configuration = {
             }
         }),
         new CssPlugin({
-            filename: `static/css/home.css`,
-            chunkFilename: `static/css/home.chunk.css`
+            filename: `static/css/[name].[contenthash].css`
         })
     ]
 };
@@ -112,8 +110,13 @@ const config: Configuration = merge(
             __dirname: true
         },
         output: {
-            filename: "[name].js",
-            path: paths.public.root
+            filename: isProductionBuild ? "static/js/[name].[contenthash].js" : "static/js/[name].js",
+            path: paths.public.root,
+
+            // Although the default, listing here explicitly because if this is true
+            // then the data folder will be removed which is something we desperately
+            // do not want to happen.
+            clean: false
         },
         plugins: [
             new ProgressPlugin(),
@@ -130,7 +133,7 @@ const config: Configuration = merge(
             new CleanPlugin({
                 verbose: true,
                 cleanStaleWebpackAssets: false,
-                cleanOnceBeforeBuildPatterns: [`${paths.public.root}/*.*`, `${paths.public.root}/static/**/*`]
+                cleanOnceBeforeBuildPatterns: [`${paths.public.root}/*.html`, `${paths.public.root}/static/**/*`]
             })
         ],
         resolve: {
