@@ -24,4 +24,4 @@ crond -l 2 -f &
 
 echo "Starting nginx..."
 
-/docker-entrypoint.sh nginx -g "daemon off;" "$@"
+/docker-entrypoint.sh nginx-debug -g "daemon off;" "$@"

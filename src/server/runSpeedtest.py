@@ -17,6 +17,8 @@ import time
 import argparse
 import traceback
 from typing import Optional, List
+from datetime import datetime
+import calendar
 
 from speedtest import Speedtest
 
@@ -97,14 +99,19 @@ def runSpeedtest() -> int:
         ping = 0
         download = 0
         upload = 0
-        timestamp = round(time.time(), 3)
+
+        # Convert to milliseconds
+        timestamp = datetime.utcnow().timestamp() * 1000.0
 
         test = Speedtest()
 
         if not args.initialize:
+            print("Finding servers to test...")
             test.get_servers(None)
             test.get_best_server()
+            print("Testing download...")
             test.download(threads=None)
+            print("Testing upload...")
             test.upload(threads=None, pre_allocate=False)
 
             result = test.results.dict()

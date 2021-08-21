@@ -29,11 +29,8 @@ server {
             local command = "bash ${NGINX_ROOT}/src/server/runSpeedtest.sh"
             ngx.log(ngx.INFO, string.format("Initiated speedtest run: '%s'", command))
 
-            local process = assert(io.popen(command, "r"))
-            local output, err = process:read("*all")
-            process:close()
-
-            ngx.say(data)
+            os.execute(command)
+            ngx.log(ngx.INFO, "Finished executing speedtest.")
         }
     }
 }
