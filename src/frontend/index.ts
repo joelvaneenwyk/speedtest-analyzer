@@ -21,22 +21,36 @@ enum SpeedtestResultCategory {
     ping
 }
 
-type SpeedtestResultLabels = {
-    [Property in keyof typeof SpeedtestResultCategory]: string;
+type SpeedtestResultOptions = {
+    label: string;
+    color?: Color;
+    faded?: Color;
 };
 
-type SpeedtestResultColors = {
-    [Property in keyof typeof SpeedtestResultCategory]: Color;
+type SpeedtestResultsOptions = {
+    [Property in keyof typeof SpeedtestResultCategory]: SpeedtestResultOptions;
 };
 
 class SpeedtestOptions {
     customTitle: string | undefined;
     dateFormat: string = "YYYY.MM.DD";
     locale: string = "en";
-    labels: SpeedtestResultLabels = {
-        download: "Download",
-        upload: "Upload",
-        ping: "Ping"
+    resultOptions: SpeedtestResultsOptions = {
+        download: {
+            label: "Download",
+            color: "rgba(255,190,142,0.7)",
+            faded: "rgba(255,190,142,0.4)"
+        },
+        upload: {
+            label: "Upload",
+            color: "rgba(143,181,178,0.8)",
+            faded: "rgba(143,181,178,0.4)"
+        },
+        ping: {
+            label: "Ping",
+            color: "rgba(90,90,90,0.9)",
+            faded: "rgba(90,90,90,0.4)"
+        }
     };
     dateRangePickerOptions: daterangepicker.Options;
 
@@ -81,7 +95,7 @@ class SpeedtestOptions {
     }
 }
 
-class MeasureRow {
+class SpeedtestResult {
     timestamp: number = 0;
     ping: number = 0;
     download: number = 0;
@@ -98,10 +112,10 @@ class MeasureRow {
     }
 
     constructor(data: string[]) {
-        this.timestamp = parseInt(data[MeasureRow._indexTimestamp]);
-        this.ping = parseFloat(data[MeasureRow._indexPing]);
-        this.download = parseFloat(data[MeasureRow._indexDownload]);
-        this.upload = parseFloat(data[MeasureRow._indexUpload]);
+        this.timestamp = parseInt(data[SpeedtestResult._indexTimestamp]);
+        this.ping = parseFloat(data[SpeedtestResult._indexPing]);
+        this.download = parseFloat(data[SpeedtestResult._indexDownload]);
+        this.upload = parseFloat(data[SpeedtestResult._indexUpload]);
 
         // Convert from unix milliseconds to date
         this.time = moment(this.timestamp / 1000.0, "X");
@@ -123,27 +137,19 @@ class MeasureRow {
     }
 }
 
+/**
+ * Date type we use to store a speedtest result for chart display. This matches the internal data
+ * used by ChartJS so that we can skip parsing step.
+ */
 type ParsedDataType = { x: number; y: number };
 
 class SpeedtestDataView {
     private useChartDecimation = false;
 
-    private axisColors: SpeedtestResultColors = {
-        download: "rgba(255,190,142,0.7)",
-        ping: "rgba(90,90,90,0.9)",
-        upload: "rgba(143,181,178,0.8)"
-    };
-
-    private axisColorsFaded: SpeedtestResultColors = {
-        download: "rgba(255,190,142,0.4)",
-        ping: "rgba(90,90,90,0.4)",
-        upload: "rgba(143,181,178,0.4)"
-    };
-
     private _dataHeader: string[] = [];
 
-    private _chartData: { [key: number]: MeasureRow } = {};
-    private _chartDataMeasures: MeasureRow[] = [];
+    private _chartData: { [key: number]: SpeedtestResult } = {};
+    private _chartDataMeasures: SpeedtestResult[] = [];
 
     private _chart: Chart;
     private _buttonStartSpeedtest: JQuery<HTMLElement>;
@@ -155,8 +161,8 @@ class SpeedtestDataView {
 
     private _options: SpeedtestOptions;
 
-    private _viewMin: MeasureRow | undefined;
-    private _viewMax: MeasureRow | undefined;
+    private _viewMin: SpeedtestResult | undefined;
+    private _viewMax: SpeedtestResult | undefined;
 
     constructor(chartContext: CanvasRenderingContext2D, options: SpeedtestOptions) {
         const me = this;
@@ -170,28 +176,28 @@ class SpeedtestDataView {
             datasets: [
                 {
                     indexAxis: "x",
-                    label: this._options.labels.ping,
+                    label: this._options.resultOptions.ping.label,
                     fill: false,
-                    backgroundColor: me.axisColors.ping,
-                    borderColor: me.axisColors.ping,
+                    backgroundColor: this._options.resultOptions.ping.color,
+                    borderColor: this._options.resultOptions.ping.color,
                     tension: 0,
                     data: []
                 },
                 {
                     indexAxis: "x",
-                    label: this._options.labels.upload,
+                    label: this._options.resultOptions.upload.label,
                     fill: false,
-                    backgroundColor: me.axisColors.upload,
-                    borderColor: me.axisColors.upload,
+                    backgroundColor: this._options.resultOptions.upload.color,
+                    borderColor: this._options.resultOptions.upload.color,
                     tension: 0,
                     data: []
                 },
                 {
                     indexAxis: "x",
-                    label: this._options.labels.download,
+                    label: this._options.resultOptions.download.label,
                     fill: true,
-                    backgroundColor: me.axisColors.download,
-                    borderColor: me.axisColors.download,
+                    backgroundColor: this._options.resultOptions.download.color,
+                    borderColor: this._options.resultOptions.download.color,
                     tension: 0,
                     data: []
                 }
@@ -207,11 +213,11 @@ class SpeedtestDataView {
                 animation: true,
                 normalized: true,
                 responsive: true,
-                maintainAspectRatio: false,
-                hover: {
+                interaction: {
                     mode: "nearest",
                     intersect: true
                 },
+                maintainAspectRatio: false,
                 scales: {
                     x: {
                         type: "time",
@@ -257,6 +263,17 @@ class SpeedtestDataView {
                     }
                 },
                 plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label(item: any) {
+                                const label = chartData.datasets[item.datasetIndex].label;
+                                const useMegabits = label != me._options.resultOptions.ping.label;
+                                return useMegabits
+                                    ? `${label}: ${item.formattedValue} MBits/s`
+                                    : `${label}: ${item.formattedValue} ms`;
+                            }
+                        }
+                    },
                     decimation: {
                         enabled: this.useChartDecimation,
                         threshold: 400,
@@ -288,17 +305,6 @@ class SpeedtestDataView {
                             },
                             onZoomStart: (context) => this._onViewChangeStart(),
                             onZoomComplete: (context) => this._onViewChangeEnd()
-                        }
-                    }
-                },
-                tooltip: {
-                    mode: "index",
-                    intersect: false,
-                    callbacks: {
-                        label(item: any) {
-                            const label = chartData.datasets[item.datasetIndex].label;
-                            const useMegabits = label != me._options.labels.ping;
-                            return useMegabits ? `${label}: ${item.yLabel} MBits/s` : `${label}: ${item.yLabel}`;
                         }
                     }
                 }
@@ -347,43 +353,45 @@ class SpeedtestDataView {
 
             chartData.datasets.forEach((dataset) => {
                 if (dataset.label) {
-                    let original: Color;
-                    let faded: Color;
                     let refreshed = false;
-
-                    if (dataset.label == me._options.labels.download) {
-                        original = me.axisColors.download;
-                        faded = me.axisColorsFaded.download;
-                    } else if (dataset.label == me._options.labels.upload) {
-                        original = me.axisColors.upload;
-                        faded = me.axisColorsFaded.upload;
-                    } else {
-                        original = me.axisColors.ping;
-                        faded = me.axisColorsFaded.ping;
-                    }
+                    let result = me._getResultOption(dataset.label);
 
                     onCompletes.push(function () {
                         if (!refreshed) {
                             refreshed = true;
-                            dataset.backgroundColor = original;
+                            dataset.backgroundColor = result.color;
                             dataset.animation = {
                                 easing: "easeOutSine",
-                                duration: 300
+                                duration: 300 + (Math.random() * 80 - 40)
                             };
                         }
                     });
 
                     dataset.animation = {
                         easing: "easeInBack",
-                        duration: 200
+                        duration: 200 + (Math.random() * 80 - 40)
                     };
 
-                    dataset.backgroundColor = faded;
+                    dataset.backgroundColor = result.faded;
 
                     this._chart.update();
                 }
             });
         });
+    }
+
+    _getResultOption(label: string): SpeedtestResultOptions {
+        let result;
+
+        if (label == this._options.resultOptions.download.label) {
+            result = this._options.resultOptions.download;
+        } else if (label == this._options.resultOptions.upload.label) {
+            result = this._options.resultOptions.upload;
+        } else {
+            result = this._options.resultOptions.ping;
+        }
+
+        return result;
     }
 
     _onViewChangeStart() {
@@ -476,9 +484,9 @@ class SpeedtestDataView {
             step(row: Papa.ParseResult<string>) {
                 if (me._dataHeader.length == 0) {
                     me._dataHeader = row.data;
-                    MeasureRow.initialize(row.data);
+                    SpeedtestResult.initialize(row.data);
                 } else {
-                    me.addDataRow(new MeasureRow(row.data));
+                    me.addDataRow(new SpeedtestResult(row.data));
                 }
             },
             complete(results: Papa.ParseResult<string>) {
@@ -487,7 +495,7 @@ class SpeedtestDataView {
         });
     }
 
-    addDataRow(measureRow: MeasureRow) {
+    addDataRow(measureRow: SpeedtestResult) {
         if (measureRow.isValid()) {
             this._chartData[measureRow.timestamp] = measureRow;
         }
@@ -510,7 +518,7 @@ class SpeedtestDataView {
         return -m - 1;
     }
 
-    addDataRows(measureRows: { [key: number]: MeasureRow }) {
+    addDataRows(measureRows: { [key: number]: SpeedtestResult }) {
         const me = this;
 
         if (this._chart.data.labels != undefined && this._chart.data.datasets != undefined) {
@@ -522,7 +530,7 @@ class SpeedtestDataView {
             let dataPings: ParsedDataType[] = this._chart.data.datasets[0].data as ParsedDataType[];
             let dataUploads: ParsedDataType[] = this._chart.data.datasets[1].data as ParsedDataType[];
             let dataDownloads: ParsedDataType[] = this._chart.data.datasets[2].data as ParsedDataType[];
-            let previousRow: MeasureRow | undefined;
+            let previousRow: SpeedtestResult | undefined;
 
             this._viewMin = undefined;
             this._viewMax = undefined;
@@ -589,9 +597,7 @@ class SpeedtestDataView {
 
             const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
 
-            /**
-             * Graph has to be filled dynamically whether upload or download is higher.
-             */
+            // Graph has to be filled dynamically whether upload or download is higher.
             const total = this._uploadCount + this._downloadCount;
             let largerValue = 0;
 
@@ -600,7 +606,7 @@ class SpeedtestDataView {
                 dataSets[2].fill = "origin";
                 largerValue = this._uploadCount;
             } else {
-                // upload lower than download -> priority for upload
+                // Upload lower than download -> priority for upload
                 dataSets[1].fill = "origin";
                 dataSets[2].fill = "-1"; // fill download starting @ upload line
                 largerValue = this._downloadCount;
@@ -609,7 +615,7 @@ class SpeedtestDataView {
             const percentDominated = (largerValue * 100) / total;
 
             if (percentDominated < 70) {
-                //Threshold: No fill for upload because more than 30% overlapping
+                // Threshold: No fill for upload because more than 30% overlapping
                 dataSets[1].fill = false;
                 dataSets[2].fill = true;
             }
@@ -630,16 +636,24 @@ class SpeedtestDataView {
     }
 }
 
-export let speedtestConfig = new SpeedtestOptions();
+function createSpeedtestView() {
+    let options = new SpeedtestOptions();
 
-$(function () {
-    Chart.register(...registerables);
-    Chart.register(ZoomPlugin);
+    $(function () {
+        Chart.register(...registerables);
+        Chart.register(ZoomPlugin);
 
-    const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
-    const chartContext = chartCanvas.getContext("2d");
-    if (chartContext != null) {
-        const parseManager = new SpeedtestDataView(chartContext, speedtestConfig);
-        parseManager.parseData();
-    }
-});
+        const chartCanvas = <HTMLCanvasElement>$("#speed-chart").get(0);
+        const chartContext = chartCanvas.getContext("2d");
+        if (chartContext != null) {
+            const parseManager = new SpeedtestDataView(chartContext, options);
+            parseManager.parseData();
+        }
+    });
+
+    return options;
+}
+
+export let speedtestConfig = createSpeedtestView();
+
+export default speedtestConfig;
