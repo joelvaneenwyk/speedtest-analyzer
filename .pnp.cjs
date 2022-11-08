@@ -7857,10 +7857,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["loader-utils", [
-        ["npm:2.0.0", {
-          "packageLocation": "./.yarn/cache/loader-utils-npm-2.0.0-cf7d5aadbf-6856423131.zip/node_modules/loader-utils/",
+        ["npm:2.0.3", {
+          "packageLocation": "./.yarn/cache/loader-utils-npm-2.0.3-4d761d6a51-d055c61ce5.zip/node_modules/loader-utils/",
           "packageDependencies": [
-            ["loader-utils", "npm:2.0.0"],
+            ["loader-utils", "npm:2.0.3"],
             ["big.js", "npm:5.2.2"],
             ["emojis-list", "npm:3.0.0"],
             ["json5", "npm:2.2.0"]
@@ -11195,7 +11195,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/webpack", "npm:5.28.0"],
             ["json-parse-better-errors", "npm:1.0.2"],
             ["loader-runner", "npm:4.2.0"],
-            ["loader-utils", "npm:2.0.0"],
+            ["loader-utils", "npm:2.0.3"],
             ["neo-async", "npm:2.6.2"],
             ["schema-utils", "npm:3.1.1"],
             ["webpack", "virtual:4e1b74a67e48c823f3ff0a7e77ce1a129c2603248a8d7352e57329fac5ebc472fbab6d7721e15318664fa8e757721546ce67a33cf9b8ebc6c4e16c9112ea56a7#npm:5.50.0"]
