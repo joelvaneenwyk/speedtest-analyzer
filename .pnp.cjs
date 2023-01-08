@@ -162,7 +162,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["convert-source-map", "npm:1.8.0"],
             ["debug", "virtual:c9bc8b4682dae1ac36fcb97c7fccfb86af01a1f6fc48eaf83d9bd00fb14f9e1f641a2409ef7e079b4e0ed4a16267412a60166cc456172f4a4f9469cc6ef7c07b#npm:4.3.2"],
             ["gensync", "npm:1.0.0-beta.2"],
-            ["json5", "npm:2.2.0"],
+            ["json5", "npm:2.2.3"],
             ["semver", "npm:6.3.0"],
             ["source-map", "npm:0.5.7"]
           ],
@@ -7717,11 +7717,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["json5", [
-        ["npm:2.2.0", {
-          "packageLocation": "./.yarn/cache/json5-npm-2.2.0-da49dc7cb5-e88fc5274b.zip/node_modules/json5/",
+        ["npm:2.2.3", {
+          "packageLocation": "./.yarn/cache/json5-npm-2.2.3-9962c55073-2a7436a933.zip/node_modules/json5/",
           "packageDependencies": [
-            ["json5", "npm:2.2.0"],
-            ["minimist", "npm:1.2.5"]
+            ["json5", "npm:2.2.3"]
           ],
           "linkType": "HARD",
         }]
@@ -7863,7 +7862,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["loader-utils", "npm:2.0.0"],
             ["big.js", "npm:5.2.2"],
             ["emojis-list", "npm:3.0.0"],
-            ["json5", "npm:2.2.0"]
+            ["json5", "npm:2.2.3"]
           ],
           "linkType": "HARD",
         }]
@@ -11420,7 +11419,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/tsconfig-paths-npm-3.10.1-74e5e9a4f2-014ec86927.zip/node_modules/tsconfig-paths/",
           "packageDependencies": [
             ["tsconfig-paths", "npm:3.10.1"],
-            ["json5", "npm:2.2.0"],
+            ["json5", "npm:2.2.3"],
             ["minimist", "npm:1.2.5"],
             ["strip-bom", "npm:3.0.0"]
           ],
