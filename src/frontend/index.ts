@@ -93,6 +93,9 @@ class MeasureRow {
     static _indexDownload: number;
     static _indexUpload: number;
 
+    // Failed pings are recorded as huge timeouts (e.g. 1800000) which would flatten the whole graph
+    static readonly maxPing = 60 * 1000;
+
     isValid(): boolean {
         return this.time.isValid() && this.timestamp >= 0 && (this.ping > 0 || this.download > 0 || this.upload > 0);
     }
@@ -103,13 +106,17 @@ class MeasureRow {
         this.download = parseFloat(data[MeasureRow._indexDownload]);
         this.upload = parseFloat(data[MeasureRow._indexUpload]);
 
+        if (this.ping >= MeasureRow.maxPing) {
+            this.ping = NaN;
+        }
+
         // Convert from unix milliseconds to date
-        this.time = moment(this.timestamp / 1000.0, "X");
+        this.time = moment(this.timestamp);
     }
 
     static initialize(header: string[]) {
         for (let i = 0; i < header.length; i += 1) {
-            const dataName = header[i];
+            const dataName = header[i].trim();
             if (dataName == "timestamp") {
                 this._indexTimestamp = i;
             } else if (dataName == "ping") {
@@ -125,8 +132,33 @@ class MeasureRow {
 
 type ParsedDataType = { x: number; y: number };
 
+/**
+ * Index of the first measure with a timestamp at or after the given time.
+ */
+function lowerBound(measures: MeasureRow[], timestamp: number): number {
+    let low = 0;
+    let high = measures.length;
+    while (low < high) {
+        const mid = (low + high) >> 1;
+        if (measures[mid].timestamp < timestamp) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    return low;
+}
+
 class SpeedtestDataView {
-    private useChartDecimation = false;
+    /**
+     * Candidate bucket sizes (in minutes) used when there are more measurements than pixels. Using
+     * fixed sizes keeps bucket boundaries stable while panning so the graph does not shimmer.
+     */
+    private static readonly bucketSizes = [1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2880, 10080, 20160, 43200].map(
+        (minutes) => minutes * 60 * 1000
+    );
+
+    private static readonly pixelsPerPoint = 2;
 
     private axisColors: SpeedtestResultColors = {
         download: "rgba(255,190,142,0.7)",
@@ -143,20 +175,19 @@ class SpeedtestDataView {
     private _dataHeader: string[] = [];
 
     private _chartData: { [key: number]: MeasureRow } = {};
+
+    // All measures sorted by time; the chart datasets only hold what is needed for the current view
     private _chartDataMeasures: MeasureRow[] = [];
+
+    // Number of measures averaged into each point of the current view
+    private _pointCounts: number[] = [];
 
     private _chart: Chart;
     private _buttonStartSpeedtest: JQuery<HTMLElement>;
 
-    private _uploadCount: number = 0;
-    private _downloadCount: number = 0;
-
     private _dateRangePicker: daterangepicker;
 
     private _options: SpeedtestOptions;
-
-    private _viewMin: MeasureRow | undefined;
-    private _viewMax: MeasureRow | undefined;
 
     constructor(chartContext: CanvasRenderingContext2D, options: SpeedtestOptions) {
         const me = this;
@@ -174,7 +205,7 @@ class SpeedtestDataView {
                     fill: false,
                     backgroundColor: me.axisColors.ping,
                     borderColor: me.axisColors.ping,
-                    tension: 0,
+                    stepped: true,
                     data: []
                 },
                 {
@@ -183,7 +214,7 @@ class SpeedtestDataView {
                     fill: false,
                     backgroundColor: me.axisColors.upload,
                     borderColor: me.axisColors.upload,
-                    tension: 0,
+                    stepped: true,
                     data: []
                 },
                 {
@@ -192,7 +223,7 @@ class SpeedtestDataView {
                     fill: true,
                     backgroundColor: me.axisColors.download,
                     borderColor: me.axisColors.download,
-                    tension: 0,
+                    stepped: true,
                     data: []
                 }
             ] as ChartDataset<"line">[]
@@ -202,15 +233,23 @@ class SpeedtestDataView {
             type: "line",
             data: chartData,
             options: {
-                spanGaps: false,
+                // Each measurement holds until the next one so missing data does not leave holes
+                spanGaps: true,
                 parsing: false,
-                animation: true,
+                animation: false,
                 normalized: true,
                 responsive: true,
                 maintainAspectRatio: false,
-                hover: {
-                    mode: "nearest",
-                    intersect: true
+                elements: {
+                    point: {
+                        radius: 0,
+                        hoverRadius: 4,
+                        hitRadius: 4
+                    }
+                },
+                interaction: {
+                    mode: "index",
+                    intersect: false
                 },
                 scales: {
                     x: {
@@ -257,12 +296,6 @@ class SpeedtestDataView {
                     }
                 },
                 plugins: {
-                    decimation: {
-                        enabled: this.useChartDecimation,
-                        threshold: 400,
-                        algorithm: "lttb",
-                        samples: 1000
-                    },
                     legend: {
                         position: "bottom"
                     },
@@ -275,7 +308,6 @@ class SpeedtestDataView {
                         pan: {
                             mode: "xy",
                             enabled: true,
-                            onPanStart: (context) => this._onViewChangeStart(),
                             onPanComplete: (context) => this._onViewChangeEnd()
                         },
                         zoom: {
@@ -286,19 +318,21 @@ class SpeedtestDataView {
                             pinch: {
                                 enabled: true
                             },
-                            onZoomStart: (context) => this._onViewChangeStart(),
                             onZoomComplete: (context) => this._onViewChangeEnd()
                         }
-                    }
-                },
-                tooltip: {
-                    mode: "index",
-                    intersect: false,
-                    callbacks: {
-                        label(item: any) {
-                            const label = chartData.datasets[item.datasetIndex].label;
-                            const useMegabits = label != me._options.labels.ping;
-                            return useMegabits ? `${label}: ${item.yLabel} MBits/s` : `${label}: ${item.yLabel}`;
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(item) {
+                                const label = item.dataset.label;
+                                const value = item.parsed.y.toFixed(1);
+                                const useMegabits = label != me._options.labels.ping;
+                                return useMegabits ? `${label}: ${value} MBits/s` : `${label}: ${value} ms`;
+                            },
+                            footer(items) {
+                                const count = items.length > 0 ? me._pointCounts[items[0].dataIndex] : 0;
+                                return count > 1 ? `Average of ${count} tests` : "";
+                            }
                         }
                     }
                 }
@@ -386,15 +420,7 @@ class SpeedtestDataView {
         });
     }
 
-    _onViewChangeStart() {
-        let decimation = this._chart.config.options?.plugins?.decimation;
-        decimation && (decimation.enabled = false);
-    }
-
     _onViewChangeEnd() {
-        let decimation = this._chart.config.options?.plugins?.decimation;
-        decimation && (decimation.enabled = this.useChartDecimation);
-
         let start = moment(this._chart.scales.x.min);
         let end = moment(this._chart.scales.x.max);
 
@@ -403,13 +429,102 @@ class SpeedtestDataView {
 
         sessionStorage.setItem("startDate", start.toISOString());
         sessionStorage.setItem("endDate", end.toISOString());
+
+        this._updateViewData(start.valueOf(), end.valueOf());
+        this._chart.update("none");
     }
 
     onDatePickerChange(start: moment.Moment, end: moment.Moment) {
-        this._chart.zoomScale("x", {
-            min: this._dateRangePicker.startDate.valueOf(),
-            max: this._dateRangePicker.endDate.valueOf()
+        this._zoomToDateRange();
+    }
+
+    _zoomToDateRange() {
+        const min = this._dateRangePicker.startDate.valueOf();
+        const max = this._dateRangePicker.endDate.valueOf();
+        this._updateViewData(min, max);
+        this._chart.zoomScale("x", { min, max });
+    }
+
+    /**
+     * Fill the datasets with points for the given range plus one range on either side so that
+     * panning has data to show. When there are more measurements than pixels they are averaged into
+     * fixed time buckets, which keeps rendering cost bounded no matter how much history there is.
+     */
+    _updateViewData(min: number, max: number) {
+        const datasets = this._chart.data.datasets as ChartDataset<"line", ParsedDataType[]>[];
+        const measures = this._chartDataMeasures;
+        const range = Math.max(max - min, 1);
+        const width = this._chart.chartArea?.width || this._chart.width;
+        const targetPoints = Math.max(width / SpeedtestDataView.pixelsPerPoint, 1);
+
+        // Include the measure before and after the span so the steps at the edges have a value
+        const start = Math.max(lowerBound(measures, min - range) - 1, 0);
+        const end = Math.min(lowerBound(measures, max + range) + 1, measures.length);
+        const visibleCount = lowerBound(measures, max) - lowerBound(measures, min);
+
+        const pings: ParsedDataType[] = [];
+        const uploads: ParsedDataType[] = [];
+        const downloads: ParsedDataType[] = [];
+        const counts: number[] = [];
+
+        if (visibleCount <= targetPoints) {
+            for (let i = start; i < end; i++) {
+                const measure = measures[i];
+                pings.push({ x: measure.timestamp, y: measure.ping });
+                uploads.push({ x: measure.timestamp, y: measure.upload });
+                downloads.push({ x: measure.timestamp, y: measure.download });
+                counts.push(1);
+            }
+        } else {
+            const idealSize = range / targetPoints;
+            const bucketSize = SpeedtestDataView.bucketSizes.filter((size) => size >= idealSize)[0] || idealSize;
+
+            // Sum and count per value since a measure can be missing individual values
+            let sums = [0, 0, 0];
+            let sumCounts = [0, 0, 0];
+            let bucket = NaN;
+            let count = 0;
+
+            const flush = () => {
+                if (count > 0) {
+                    pings.push({ x: bucket, y: sums[0] / sumCounts[0] });
+                    uploads.push({ x: bucket, y: sums[1] / sumCounts[1] });
+                    downloads.push({ x: bucket, y: sums[2] / sumCounts[2] });
+                    counts.push(count);
+                }
+                sums = [0, 0, 0];
+                sumCounts = [0, 0, 0];
+                count = 0;
+            };
+
+            for (let i = start; i < end; i++) {
+                const measure = measures[i];
+                const measureBucket = Math.floor(measure.timestamp / bucketSize) * bucketSize;
+                if (measureBucket != bucket) {
+                    flush();
+                    bucket = measureBucket;
+                }
+
+                const values = [measure.ping, measure.upload, measure.download];
+                for (let v = 0; v < values.length; v++) {
+                    if (isFinite(values[v])) {
+                        sums[v] += values[v];
+                        sumCounts[v] += 1;
+                    }
+                }
+                count++;
+            }
+            flush();
+        }
+
+        // Only show individual points when they are far enough apart to be distinguishable
+        const pointRadius = visibleCount <= targetPoints / 4 ? 2 : 0;
+
+        [pings, uploads, downloads].forEach((data, index) => {
+            datasets[index].data = data;
+            datasets[index].pointRadius = pointRadius;
         });
+        this._pointCounts = counts;
     }
 
     onButtonClick() {
@@ -445,6 +560,11 @@ class SpeedtestDataView {
 
         Papa.parse(input, {
             download: download,
+
+            // Files can mix CRLF and LF (e.g. git autocrlf on older rows); splitting on LF handles
+            // both since the numeric parsing ignores a trailing CR.
+            newline: "\n",
+            skipEmptyLines: true,
 
             error(error: Papa.ParseError) {
                 console.log("Failed to load data.");
@@ -493,139 +613,52 @@ class SpeedtestDataView {
         }
     }
 
-    _findElementIndex(ar: any[], el: any, compare_fn: any) {
-        var m: number = 0;
-        var n: number = ar.length - 1;
-        while (m <= n) {
-            var k = (n + m) >> 1;
-            var cmp = compare_fn(el, ar[k]);
-            if (cmp > 0) {
-                m = k + 1;
-            } else if (cmp < 0) {
-                n = k - 1;
+    addDataRows(measureRows: { [key: number]: MeasureRow }) {
+        const measures = Object.values(measureRows).sort((a, b) => a.timestamp - b.timestamp);
+        this._chartDataMeasures = measures;
+
+        let uploadCount = 0;
+        let downloadCount = 0;
+        for (const measure of measures) {
+            if (measure.upload > measure.download) {
+                uploadCount += 1;
             } else {
-                return k;
+                downloadCount += 1;
             }
         }
-        return -m - 1;
-    }
 
-    addDataRows(measureRows: { [key: number]: MeasureRow }) {
-        const me = this;
+        const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
 
-        if (this._chart.data.labels != undefined && this._chart.data.datasets != undefined) {
-            let measures = Object.values(measureRows).sort((a, b) => {
-                return a.time.diff(b.time);
-            });
+        /**
+         * Graph has to be filled dynamically whether upload or download is higher.
+         */
+        const total = uploadCount + downloadCount;
+        let largerValue = 0;
 
-            let dataLabels: string[] = this._chart.data.labels as string[];
-            let dataPings: ParsedDataType[] = this._chart.data.datasets[0].data as ParsedDataType[];
-            let dataUploads: ParsedDataType[] = this._chart.data.datasets[1].data as ParsedDataType[];
-            let dataDownloads: ParsedDataType[] = this._chart.data.datasets[2].data as ParsedDataType[];
-            let previousRow: MeasureRow | undefined;
+        if (uploadCount > downloadCount) {
+            dataSets[1].fill = "+1"; // fill upload till download line
+            dataSets[2].fill = "origin";
+            largerValue = uploadCount;
+        } else {
+            // upload lower than download -> priority for upload
+            dataSets[1].fill = "origin";
+            dataSets[2].fill = "-1"; // fill download starting @ upload line
+            largerValue = downloadCount;
+        }
 
-            this._viewMin = undefined;
-            this._viewMax = undefined;
+        const percentDominated = (largerValue * 100) / total;
 
-            let insertIndex = 0;
-            let measureIndex = 0;
+        if (percentDominated < 70) {
+            //Threshold: No fill for upload because more than 30% overlapping
+            dataSets[1].fill = false;
+            dataSets[2].fill = true;
+        }
 
-            while (measureIndex < measures.length) {
-                const measure = measures[measureIndex];
-
-                while (
-                    insertIndex < this._chartDataMeasures.length &&
-                    this._chartDataMeasures[insertIndex].timestamp < measure.timestamp
-                ) {
-                    insertIndex++;
-                }
-
-                if (
-                    insertIndex >= this._chartDataMeasures.length ||
-                    this._chartDataMeasures[insertIndex].timestamp != measure.timestamp
-                ) {
-                    if (measure.upload > measure.download) {
-                        me._uploadCount += 1;
-                    } else {
-                        me._downloadCount += 1;
-                    }
-
-                    const label = measure.time.format("YYYY-MM-DD");
-
-                    if (me._viewMin == undefined && measure.time.isAfter(me._dateRangePicker.startDate)) {
-                        me._viewMin = measure;
-                    }
-
-                    if (
-                        me._viewMin != undefined &&
-                        me._viewMax == undefined &&
-                        measure.time.isAfter(me._dateRangePicker.endDate)
-                    ) {
-                        me._viewMax = measure;
-                    }
-
-                    // Insert a gap measure so that we do not get filled graph between disconnected days
-                    if (previousRow != undefined && measure.time.diff(previousRow.time, "days") >= 1.5) {
-                        dataPings.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
-                        dataUploads.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
-                        dataDownloads.splice(insertIndex, 0, { x: previousRow.timestamp + 1, y: NaN });
-                        dataLabels.splice(insertIndex, 0, "");
-                        insertIndex++;
-                    }
-
-                    dataPings.splice(insertIndex, 0, { x: measure.timestamp, y: measure.ping });
-                    dataUploads.splice(insertIndex, 0, { x: measure.timestamp, y: measure.upload });
-                    dataDownloads.splice(insertIndex, 0, { x: measure.timestamp, y: measure.download });
-                    dataLabels.splice(insertIndex, 0, label);
-                    this._chartDataMeasures.splice(insertIndex, 0, measure);
-
-                    insertIndex++;
-
-                    previousRow = measure;
-                }
-
-                measureIndex++;
-            }
-
-            const dataSets = this._chart.data.datasets as ChartDataset<"line">[];
-
-            /**
-             * Graph has to be filled dynamically whether upload or download is higher.
-             */
-            const total = this._uploadCount + this._downloadCount;
-            let largerValue = 0;
-
-            if (this._uploadCount > this._downloadCount) {
-                dataSets[1].fill = "+1"; // fill upload till download line
-                dataSets[2].fill = "origin";
-                largerValue = this._uploadCount;
-            } else {
-                // upload lower than download -> priority for upload
-                dataSets[1].fill = "origin";
-                dataSets[2].fill = "-1"; // fill download starting @ upload line
-                largerValue = this._downloadCount;
-            }
-
-            const percentDominated = (largerValue * 100) / total;
-
-            if (percentDominated < 70) {
-                //Threshold: No fill for upload because more than 30% overlapping
-                dataSets[1].fill = false;
-                dataSets[2].fill = true;
-            }
-
-            if (this._viewMax == undefined && previousRow != undefined) {
-                this._viewMax = previousRow;
-            }
-
-            if (this._dateRangePicker.endDate && this._dateRangePicker.startDate) {
-                this._chart.zoomScale("x", {
-                    min: this._dateRangePicker.startDate.valueOf(),
-                    max: this._dateRangePicker.endDate.valueOf()
-                });
-            }
-
-            this._chart.update();
+        if (this._dateRangePicker.endDate && this._dateRangePicker.startDate) {
+            this._zoomToDateRange();
+        } else if (measures.length > 0) {
+            this._updateViewData(measures[0].timestamp, measures[measures.length - 1].timestamp);
+            this._chart.update("none");
         }
     }
 }
